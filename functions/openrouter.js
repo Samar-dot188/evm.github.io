@@ -7,7 +7,7 @@ export async function handler(event, context) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer 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`
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
