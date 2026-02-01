@@ -11,7 +11,7 @@ export async function handler(event, context) {
       },
       body: JSON.stringify({
         model: "google/gemma-3-27b-it:free",
-        messages: [{ role: "user", content: body.prompt }]
+        prompt: body.prompt
       })
     });
 
