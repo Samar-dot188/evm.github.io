@@ -1,0 +1,10 @@
+[build]
+  publish = "."               # Root folder contains index.html
+  functions = "functions"    # Folder where Netlify serverless functions live
+
+[dev]
+  functions = "functions"    # For local Netlify dev testing
+  port = 8888                # Optional: local dev server port
+
+[build.environment]
+  NODE_VERSION = "20"        # Optional: ensure Node 20
