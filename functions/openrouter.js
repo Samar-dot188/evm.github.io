@@ -1,3 +1,5 @@
+console.log("KEY EXISTS:", !!process.env.OPENROUTER_API_KEY);
+
 export async function handler(event, context) {
   try {
     const body = JSON.parse(event.body); // expect { prompt: "..." }
