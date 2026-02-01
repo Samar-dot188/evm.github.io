@@ -1,5 +1,3 @@
-import fetch from "node-fetch"; // required in Netlify functions
-
 export async function handler(event, context) {
   try {
     const body = JSON.parse(event.body); // expect { prompt: "..." }
@@ -10,7 +8,7 @@ export async function handler(event, context) {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "google/gemma-3-27b-it:free",
         messages: [{ role: "user", content: body.prompt }]
       })
     });
