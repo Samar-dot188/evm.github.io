@@ -1,18 +1,26 @@
+import fetch from "node-fetch"; // required in Netlify functions
+
 export async function handler(event, context) {
   try {
-    const { prompt } = JSON.parse(event.body);
-
+    const body = JSON.parse(event.body); // expect { prompt: "..." }
     const response = await fetch("https://openrouter.ai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer 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`
+        "Authorization": `Bearer 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`
       },
       body: JSON.stringify({
-        model: "google/gemma-3-27b-it:free",
-        messages: [{ role: "user", content: prompt }]
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: body.prompt }]
       })
     });
+
+    if (!response.ok) {
+      return {
+        statusCode: response.status,
+        body: JSON.stringify({ error: "OpenRouter request failed" })
+      };
+    }
 
     const data = await response.json();
     return {
@@ -22,7 +30,7 @@ export async function handler(event, context) {
   } catch (err) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Failed to fetch OpenRouter" })
+      body: JSON.stringify({ error: "Failed to fetch OpenRouter", details: err.message })
     };
   }
 }
