@@ -26,6 +26,7 @@ exports.handler = async (event) => {
         });
 
         const data = await response.json();
+        console.log(response)
         console.log("OpenRouter Success!"); 
 
         return {
