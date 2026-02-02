@@ -926,28 +926,70 @@
                 scene.add(ghost);
             }
         }
-        async function askAI(prompt) {
-            try {
-                const res = await fetch("/.netlify/functions/openrouter", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    model: "google/gemma-3-27b-it",
-    messages: [
-      { role: "user", content: prompt }
-    ],
-    max_tokens: 200
-  })
-});
+        window.askAI = async function (objects) {
+            const prompt = `You are an environmental judge.
+                            City contains:
+                            ${objects}
 
-                const data = await res.json();
-                console.log(data);
+                            Return ONLY valid JSON:
+
+                            {
+                            "rating": number,
+                            "feedback": string,
+                            "tip": string
+                            }`;
+
+            try {
+                const response = await fetch("https://openrouter.ai/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}` // Your OpenRouter key
+                    },
+                    body: JSON.stringify({
+                        model: "google/gemma-3-27b-it:free",   // Make sure this model is enabled in your OpenRouter dashboard
+                        messages: [
+                            { role: "user", content: prompt }
+                        ],
+                        max_tokens: 300
+                    })
+                });
+
+                const data = await response.json();
+                console.log("OpenRouter response:", data);
+
+                // Extract AI output text
+                let outputText = "";
+                if (data.choices && data.choices.length > 0) {
+                    outputText = data.choices[0].message.content;
+                }
+
+                // Attempt to parse JSON from AI
+                let aiResult;
+                try {
+                    aiResult = JSON.parse(outputText);
+                } catch (e) {
+                    console.warn("Failed to parse AI JSON, using fallback.", e);
+                    aiResult = {
+                        rating: 5,
+                        feedback: "AI output could not be parsed.",
+                        tip: "Try restructuring your city for better results."
+                    };
+                }
+
+                return aiResult;
+
             } catch (err) {
                 console.error("OpenRouter API error:", err);
+                return {
+                    rating: 5,
+                    feedback: "AI service unavailable.",
+                    tip: "Try again later."
+                };
             }
-        }
+        };
+
+
 
     </script>
 </body>
