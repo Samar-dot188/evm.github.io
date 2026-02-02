@@ -18,10 +18,9 @@ exports.handler = async (event) => {
             },
             body: JSON.stringify({
                 model: "google/gemma-3-27b-it:free",
-                messages: [{ 
-                    role: "user", 
-                    content: `You are an environmental judge. City: ${objects}. Return ONLY JSON: {"rating": 1-10, "feedback": "string", "tip": "string"}` 
-                }]
+                messages: [{ role: "system", content: "You are an environmental judge. Respond ONLY with JSON." },
+                                {role: "user", content: `Evaluate this city: ${objects}. Format: {"rating": 5, "feedback": "...", "tip": "..."}` }
+    ]
             })
         });
 
