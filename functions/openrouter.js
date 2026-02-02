@@ -17,7 +17,7 @@ exports.handler = async (event) => {
                 "HTTP-Referer": "https://ecoverse.netlify.app", // Optional but good practice
             },
             body: JSON.stringify({
-                model: "google/gemma-3-27b-it",
+                model: "arcee-ai/trinity-large-preview:free",
                 messages: [{ role: "system", content: "You are an environmental judge. Respond ONLY with JSON." },
                                 {role: "user", content: `Evaluate this city: ${objects}. Format: {"rating": 5, "feedback": "...", "tip": "..."}` }
     ]
