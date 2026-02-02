@@ -1,28 +1,42 @@
-export async function handler(event) {
-  console.log("FUNCTION HIT");
+const fetch = require('node-fetch');
 
-  if (!process.env.OPENROUTER_API_KEY) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "NO API KEY" })
-    };
-  }
+exports.handler = async (event) => {
+    const apiKey = process.env.OPENROUTER_API_KEY;
 
-  const body = JSON.parse(event.body || "{}");
+    // Check if variable is null
+    if (!apiKey) {
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ isVarNull: true })
+        };
+    }
 
-  const response = await fetch("https://openrouter.ai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(body)
-  });
+    const { objects } = JSON.parse(event.body);
+    const prompt = `You are an environmental judge. City contains: ${objects}. Return ONLY valid JSON: {"rating": number, "feedback": string, "tip": string}`;
 
-  const text = await response.text();
+    try {
+        const response = await fetch("https://openrouter.ai", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "google/gemma-3-27b-it:free",
+                messages: [{ role: "user", content: prompt }],
+                max_tokens: 300
+            })
+        });
 
-  return {
-    statusCode: 200,
-    body: text
-  };
-}
+        const data = await response.json();
+        const aiText = data.choices[0].message.content;
+        
+        // Return the AI JSON directly to the frontend
+        return {
+            statusCode: 200,
+            body: aiText // Assuming AI returns the JSON string requested
+        };
+    } catch (err) {
+        return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+    }
+};
