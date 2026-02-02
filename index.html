@@ -364,7 +364,7 @@
 
     <script>
         // --- Config ---
-        const OPENAI_KEY = "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";
+        const OPENAI_KEY = "";
         const GRID_SIZE = 10;
         const CELL_SIZE = 2;
         const MIN_OBJECTS = 10;
@@ -927,65 +927,25 @@
             }
         }
         window.askAI = async function (objects) {
-            const prompt = `You are an environmental judge.
-                            City contains:
-                            ${objects}
-
-                            Return ONLY valid JSON:
-
-                            {
-                            "rating": number,
-                            "feedback": string,
-                            "tip": string
-                            }`;
-
             try {
-                const response = await fetch("https://openrouter.ai/v1/chat/completions", {
+                // We call YOUR Netlify function, which safely holds the key
+                const response = await fetch("/.netlify/functions/openrouter", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}` // Your OpenRouter key
-                    },
-                    body: JSON.stringify({
-                        model: "google/gemma-3-27b-it:free",   // Make sure this model is enabled in your OpenRouter dashboard
-                        messages: [
-                            { role: "user", content: prompt }
-                        ],
-                        max_tokens: 300
-                    })
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ objects: objects })
                 });
 
                 const data = await response.json();
-                console.log("OpenRouter response:", data);
 
-                // Extract AI output text
-                let outputText = "";
-                if (data.choices && data.choices.length > 0) {
-                    outputText = data.choices[0].message.content;
+                // If the function returned an error about the variable
+                if (data.isVarNull) {
+                    return { rating: 0, feedback: "API Key missing in Netlify settings.", tip: "Check dashboard." };
                 }
 
-                // Attempt to parse JSON from AI
-                let aiResult;
-                try {
-                    aiResult = JSON.parse(outputText);
-                } catch (e) {
-                    console.warn("Failed to parse AI JSON, using fallback.", e);
-                    aiResult = {
-                        rating: 5,
-                        feedback: "AI output could not be parsed.",
-                        tip: "Try restructuring your city for better results."
-                    };
-                }
-
-                return aiResult;
-
+                return data; // This will be the {rating, feedback, tip} from the AI
             } catch (err) {
-                console.error("OpenRouter API error:", err);
-                return {
-                    rating: 5,
-                    feedback: "AI service unavailable.",
-                    tip: "Try again later."
-                };
+                console.error("Function error:", err);
+                return { rating: 5, feedback: "Could not connect to service.", tip: "Check your internet." };
             }
         };
 
