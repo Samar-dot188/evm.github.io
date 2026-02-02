@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 exports.handler = async (event) => {
     const apiKey = process.env.OPENROUTER_API_KEY;
 
