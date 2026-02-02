@@ -779,14 +779,7 @@
             const totalScore = parseInt(document.getElementById('live-score').innerText);
 
             let aiData;
-            try {
-                if (OPENAI_KEY) {
-                    aiData = await askAI(objectsList);
-                } else {
-                    aiData = simulateAI(totalScore);
-                }
-            } catch (e) { aiData = simulateAI(totalScore); }
-
+            aiData = await askAI(objectsList);
             document.getElementById('final-score').innerText = totalScore;
             document.getElementById('final-rating').innerText = aiData.rating;
             document.getElementById('ai-feedback').innerText = aiData.feedback;
@@ -794,22 +787,6 @@
 
             saveScore(playerName, totalScore, aiData.rating);
             if (totalScore > 100) spawnConfetti();
-        }
-
-        function simulateAI(score) {
-            const rating = Math.max(1, Math.min(10, Math.floor(score / 15) + 5));
-            let feedback = "A functional start to a city, but balancing industrial output with green space is key.";
-            let tip = "Try adding more trees and renewable energy to boost air quality.";
-
-            if (score > 120) {
-                feedback = "Masterful design! This carbon-neutral sanctuary sets a new standard for urban living.";
-                tip = "Consider optimizing high-density housing near bus terminals.";
-            } else if (score < 0) {
-                feedback = "An environmental disaster. The reliance on coal and waste is creating an uninhabitable zone.";
-                tip = "Demolish the coal factories and replace them with wind turbines immediately.";
-            }
-
-            return { rating, feedback, tip };
         }
 
         async function saveScore(name, score, rating) {
