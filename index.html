@@ -927,27 +927,36 @@
             }
         }
         window.askAI = async function (objects) {
-            try {
-                // We call YOUR Netlify function, which safely holds the key
-                const response = await fetch("/.netlify/functions/openrouter", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ objects: objects })
-                });
+    try {
+        const response = await fetch("/.netlify/functions/openrouter", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ objects: objects })
+        });
 
-                const data = await response.json();
+        const data = await response.json();
+        console.log("Received from function:", data);
 
-                // If the function returned an error about the variable
-                if (data.isVarNull) {
-                    return { rating: 0, feedback: "API Key missing in Netlify settings.", tip: "Check dashboard." };
-                }
+        // Check for errors
+        if (data.error) {
+            return { 
+                rating: 5, 
+                feedback: data.error, 
+                tip: "Check your configuration." 
+            };
+        }
 
-                return data; // This will be the {rating, feedback, tip} from the AI
-            } catch (err) {
-                console.error("Function error:", err);
-                return { rating: 5, feedback: "Could not connect to service.", tip: "Check your internet." };
-            }
+        // Return the parsed result
+        return data; // Should now be {rating, feedback, tip}
+    } catch (err) {
+        console.error("Function error:", err);
+        return { 
+            rating: 5, 
+            feedback: "Could not connect to service.", 
+            tip: "Check your internet." 
         };
+    }
+};
 
 
 
