@@ -1,4 +1,5 @@
 exports.handler = async (event) => {
+    console.log("BODY RECEIVED:", event.body);
     const apiKey = process.env.OPENROUTER_API_KEY;
 
     // Check if variable is null
