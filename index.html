@@ -929,10 +929,19 @@
         async function askAI(prompt) {
             try {
                 const res = await fetch("/.netlify/functions/openrouter", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ prompt })
-                });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    model: "google/gemma-3-27b-it",
+    messages: [
+      { role: "user", content: userInput }
+    ],
+    max_tokens: 200
+  })
+});
+
                 const data = await res.json();
                 console.log(data);
             } catch (err) {
