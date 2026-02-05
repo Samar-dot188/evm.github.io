@@ -5,14 +5,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ECOVERSE – 3D Environment Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Outfit:wght@700;800&display=swap"
+        rel="stylesheet">
     <style>
         :root {
-            --glass: rgba(255, 255, 255, 0.15);
-            --glass-heavy: rgba(255, 255, 255, 0.85);
-            --primary: #2ecc71;
-            --secondary: #3498db;
-            --danger: #e74c3c;
-            --dark: #2c3e50;
+            /* Light Theme Variables */
+            --glass: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(0, 0, 0, 0.05);
+            --glass-heavy: rgba(255, 255, 255, 0.95);
+
+            --primary: #10b981;
+            /* Emerald */
+            --primary-glow: rgba(16, 185, 129, 0.2);
+            --secondary: #3b82f6;
+            /* Blue */
+            --accent: #8b5cf6;
+            /* Violet */
+            --danger: #ef4444;
+            /* Red */
+
+            --dark: #f8fafc;
+            /* Slate 50 (Background) */
+            --text: #1e293b;
+            /* Slate 800 */
+            --text-muted: #64748b;
+            /* Slate 500 */
         }
 
         body,
@@ -22,8 +41,9 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            font-family: 'Inter', -apple-system, sans-serif;
-            background: #0f172a;
+            font-family: 'Inter', sans-serif;
+            background: var(--dark);
+            color: var(--text);
         }
 
         #canvas-container {
@@ -34,7 +54,7 @@
             left: 0;
         }
 
-        /* UI Overlays */
+        /* UI Overlays & Panels */
         .overlay {
             position: fixed;
             top: 0;
@@ -45,9 +65,9 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(8px);
-            transition: opacity 0.5s;
+            background: rgba(2, 6, 23, 0.8);
+            backdrop-filter: blur(12px);
+            transition: opacity 0.4s ease;
         }
 
         .hidden {
@@ -56,18 +76,46 @@
 
         .panel {
             background: var(--glass-heavy);
-            padding: 2.5rem;
-            border-radius: 24px;
+            padding: 3rem;
+            border-radius: 32px;
             width: 90%;
-            max-width: 480px;
+            max-width: 500px;
             text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle glow inside panels */
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, transparent 60%);
+            pointer-events: none;
         }
 
         h1 {
+            font-family: 'Outfit', sans-serif;
             margin-top: 0;
-            color: var(--dark);
-            letter-spacing: -1px;
+            font-size: 4rem;
+            background: linear-gradient(135deg, #059669 0%, #0891b2 50%, #2563eb 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        }
+
+        h2,
+        h3 {
+            font-family: 'Outfit', sans-serif;
+            color: var(--text);
         }
 
         /* HUD */
@@ -83,100 +131,167 @@
 
         .side-bar {
             position: absolute;
-            left: 20px;
+            left: 24px;
             top: 50%;
             transform: translateY(-50%);
             background: var(--glass);
-            backdrop-filter: blur(10px);
-            padding: 15px;
-            border-radius: 20px;
+            backdrop-filter: blur(16px);
+            padding: 16px;
+            border-radius: 24px;
             pointer-events: auto;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             max-height: 80vh;
             overflow-y: auto;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Hide scrollbar for cleaner look */
+        .side-bar::-webkit-scrollbar {
+            width: 0;
         }
 
         .top-bar {
             position: absolute;
-            top: 20px;
+            top: 24px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 15px;
+            gap: 12px;
             align-items: center;
             pointer-events: auto;
             width: max-content;
         }
 
         .stat-card {
-            background: rgba(0, 0, 0, 0.6);
-            color: white;
-            padding: 8px 16px;
+            background: var(--glass);
+            /* Dark glass */
+            backdrop-filter: blur(10px);
+            color: var(--text);
+            padding: 10px 20px;
             border-radius: 50px;
-            font-weight: bold;
+            font-weight: 600;
             display: flex;
             align-items: center;
             gap: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 0.9rem;
+            border: 1px solid var(--glass-border);
+            font-size: 0.95rem;
             white-space: nowrap;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
         }
 
         /* Buttons */
         .btn {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
             border: none;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-weight: 600;
+            padding: 14px 24px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
+            box-shadow: 0 10px 15px -3px var(--primary-glow);
+            position: relative;
+            overflow: hidden;
         }
 
         .btn:hover {
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.02);
             filter: brightness(1.1);
+            box-shadow: 0 20px 25px -5px var(--primary-glow);
         }
 
         .btn:active {
-            transform: translateY(0);
+            transform: translateY(0) scale(0.98);
         }
 
         .btn:disabled {
-            background: #666;
+            background: #475569;
+            box-shadow: none;
             cursor: not-allowed;
+            opacity: 0.7;
         }
 
         .tool-btn {
-            background: white;
-            color: var(--dark);
-            border: 2px solid transparent;
+            background: rgba(255, 255, 255, 0.5);
+            color: var(--text-muted);
+            border: 1px solid transparent;
+            /* default border */
             text-align: left;
-            padding: 8px 12px;
-            font-size: 0.85rem;
+            padding: 12px 16px;
+            font-size: 1rem;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
+            border-radius: 12px;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--text);
+            transform: translateX(4px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
 
         .tool-btn.active {
-            border-color: var(--secondary);
-            background: #e0f2fe;
+            border-color: var(--primary);
+            background: rgba(16, 185, 129, 0.1);
+            color: #065f46;
+            /* Darker green text */
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
         }
 
         input[type="text"] {
             width: 100%;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 12px;
-            border: 2px solid #ddd;
-            font-size: 1rem;
+            padding: 16px;
+            margin: 24px 0;
+            border-radius: 16px;
+            border: 2px solid #e2e8f0;
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--text);
+            font-size: 1.1rem;
+            font-family: 'Inter', sans-serif;
             box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--secondary);
+            background: #fff;
+        }
+
+        /* Tooltip */
+        #tooltip {
+            position: absolute;
+            background: rgba(30, 41, 59, 0.95);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            pointer-events: none;
+            z-index: 5000;
+            white-space: nowrap;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateY(-50%);
+            left: 280px;
+            /* Offset from sidebar */
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        #tooltip.visible {
+            opacity: 1;
         }
 
         /* Leaderboard */
@@ -254,6 +369,126 @@
         .lb-entry.top strong::after {
             content: " 👑";
         }
+
+        /* Joystick Styles */
+        #joystick-container {
+            position: fixed;
+            bottom: 40px;
+            left: 40px;
+            width: 120px;
+            height: 120px;
+            z-index: 2000;
+            pointer-events: auto;
+            touch-action: none;
+        }
+
+        #joystick-base {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            position: relative;
+            backdrop-filter: blur(5px);
+        }
+
+        #joystick-knob {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        #exit-tour-btn {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: auto;
+            padding: 16px 32px;
+            font-size: 1.2rem;
+            background: var(--danger);
+            z-index: 5000;
+            display: none;
+        }
+
+        .cinematic-mode .side-bar,
+        .cinematic-mode .top-barButtons {
+            display: none !important;
+        }
+
+        .cinematic-mode .top-bar .stat-card {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Notifications */
+        #notification-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 12px;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .notification {
+            background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(12px);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+            animation: slide-in 0.4s ease forwards, fade-out 0.4s ease 3s forwards;
+            min-width: 250px;
+            pointer-events: auto;
+        }
+
+        .notification.info {
+            border-left-color: var(--secondary);
+        }
+
+        .notification.alert {
+            border-left-color: var(--danger);
+        }
+
+        .notification.success {
+            border-left-color: var(--primary);
+        }
+
+        @keyframes slide-in {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fade-out {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 
@@ -264,38 +499,85 @@
     <!-- HUD -->
     <div id="hud" class="hidden">
         <div class="top-bar">
-            <div class="stat-card">🌍 <span id="live-score">0</span>
-                pts</div>
+            <div class="stat-card" style="background: var(--secondary);">⏱️ <span id="timer">60</span>s</div>
+            <div class="stat-card">🌍 <span id="live-score">0</span> pts</div>
             <div class="stat-card">🌫️ <span id="pollution">0</span>%</div>
-            <div class="stat-card">😊 <span id="happiness">100</span>%</div>
+            <div class="stat-card">😊 <span id="happiness">0</span>%</div>
+            <button class="btn" style="background:var(--accent); width: auto;" onclick="toggleTour(true)">📽️
+                Tour</button>
             <button class="btn" id="eval-btn" onclick="evaluateCity()" disabled style="width: auto;">Evaluate
                 (0/10)</button>
             <button class="btn" style="background:var(--danger); width: auto;" onclick="setTool('delete')">🗑️
                 Delete</button>
         </div>
 
+        <button class="btn" id="exit-tour-btn" onclick="toggleTour(false)">❌ Exit Cinematic Tour</button>
+
+        <div id="notification-container"></div>
+
         <div class="side-bar">
-            <div style="color:white; font-size: 0.7rem; font-weight: bold; margin-bottom: 5px;">ENERGY</div>
+            <div
+                style="color: #6ee7b7; font-size: 0.85rem; font-weight: 800; margin-bottom: 8px; letter-spacing: 0.05em; text-shadow: 0 0 10px rgba(16, 185, 129, 0.4);">
+                ⚡ ENERGY</div>
             <button class="btn tool-btn" onclick="setTool('solar')" data-type="solar">☀️ Solar Plant</button>
             <button class="btn tool-btn" onclick="setTool('wind')" data-type="wind">🌬️ Wind Turbine</button>
+            <button class="btn tool-btn" onclick="setTool('hydro')" data-type="hydro">💧 Hydro Dam</button>
             <button class="btn tool-btn" onclick="setTool('coal')" data-type="coal">🏭 Coal Factory</button>
+            <button class="btn tool-btn" onclick="setTool('nuclear')" data-type="nuclear">☢️ Nuclear Plant</button>
 
-            <div style="color:white; font-size: 0.7rem; font-weight: bold; margin: 10px 0 5px;">LIVING</div>
+            <div
+                style="color: #fca5a5; font-size: 0.85rem; font-weight: 800; margin: 16px 0 8px; letter-spacing: 0.05em; text-shadow: 0 0 10px rgba(244, 63, 94, 0.4);">
+                🏠 LIVING</div>
             <button class="btn tool-btn" onclick="setTool('eco')" data-type="eco">🏡 Eco House</button>
             <button class="btn tool-btn" onclick="setTool('apart')" data-type="apart">🏢 Apartment</button>
+            <button class="btn tool-btn" onclick="setTool('mansion')" data-type="mansion">🏰 Mansion</button>
+            <button class="btn tool-btn" onclick="setTool('greenhouse')" data-type="greenhouse">🌱 Greenhouse</button>
+
+            <div
+                style="color: #86efac; font-size: 0.85rem; font-weight: 800; margin: 16px 0 8px; letter-spacing: 0.05em; text-shadow: 0 0 10px rgba(34, 197, 94, 0.4);">
+                🌳 NATURE</div>
             <button class="btn tool-btn" onclick="setTool('tree')" data-type="tree">🌳 Trees</button>
+            <button class="btn tool-btn" onclick="setTool('park')" data-type="park">🏞️ City Park</button>
+            <button class="btn tool-btn" onclick="setTool('garden')" data-type="garden">🌻 Garden</button>
+            <button class="btn tool-btn" onclick="setTool('pond')" data-type="pond">🦆 Pond</button>
+            <button class="btn tool-btn" onclick="setTool('fountain')" data-type="fountain">⛲ Fountain</button>
 
-            <div style="color:white; font-size: 0.7rem; font-weight: bold; margin: 10px 0 5px;">TRANSIT</div>
+            <div
+                style="color: #93c5fd; font-size: 0.85rem; font-weight: 800; margin: 16px 0 8px; letter-spacing: 0.05em; text-shadow: 0 0 10px rgba(59, 130, 246, 0.4);">
+                🚆 TRANSIT</div>
             <button class="btn tool-btn" onclick="setTool('bike')" data-type="bike">🚲 Bike Station</button>
-            <button class="btn tool-btn" onclick="setTool('car')" data-type="car">🚗 Car Park</button>
             <button class="btn tool-btn" onclick="setTool('bus')" data-type="bus">🚍 Bus Terminal</button>
+            <button class="btn tool-btn" onclick="setTool('train')" data-type="train">🚆 Train Station</button>
+            <button class="btn tool-btn" onclick="setTool('metro')" data-type="metro">🚇 Metro Hub</button>
+            <button class="btn tool-btn" onclick="setTool('car')" data-type="car">🚗 Car Park</button>
 
-            <div style="color:white; font-size: 0.7rem; font-weight: bold; margin: 10px 0 5px;">WASTE</div>
+            <div
+                style="color: #fdba74; font-size: 0.85rem; font-weight: 800; margin: 16px 0 8px; letter-spacing: 0.05em; text-shadow: 0 0 10px rgba(249, 115, 22, 0.4);">
+                ♻️ WASTE</div>
             <button class="btn tool-btn" onclick="setTool('recycle')" data-type="recycle">♻️ Recycle Center</button>
-            <button class="btn tool-btn" onclick="setTool('dump')" data-type="dump">🗑️ Dump Yard</button>
+            <button class="btn tool-btn" onclick="setTool('compost')" data-type="compost">🍂 Compost</button>
             <button class="btn tool-btn" onclick="setTool('water')" data-type="water">💧 Water Tank</button>
+            <button class="btn tool-btn" onclick="setTool('dump')" data-type="dump">🗑️ Dump Yard</button>
+
+            <div
+                style="color: #c4b5fd; font-size: 0.85rem; font-weight: 800; margin: 16px 0 8px; letter-spacing: 0.05em; text-shadow: 0 0 10px rgba(139, 92, 246, 0.4);">
+                🛒 COMMERCIAL</div>
+            <button class="btn tool-btn" onclick="setTool('market')" data-type="market">🛒 Market</button>
+            <button class="btn tool-btn" onclick="setTool('shop')" data-type="shop">🏪 Shop</button>
+            <button class="btn tool-btn" onclick="setTool('mall')" data-type="mall">🏬 Mall</button>
+
+            <div
+                style="color: #f0abfc; font-size: 0.85rem; font-weight: 800; margin: 16px 0 8px; letter-spacing: 0.05em; text-shadow: 0 0 10px rgba(217, 70, 239, 0.4);">
+                🏥 PUBLIC</div>
+            <button class="btn tool-btn" onclick="setTool('hospital')" data-type="hospital">🏥 Hospital</button>
+            <button class="btn tool-btn" onclick="setTool('school')" data-type="school">🏫 School</button>
+            <button class="btn tool-btn" onclick="setTool('library')" data-type="library">📚 Library</button>
+            <button class="btn tool-btn" onclick="setTool('stadium')" data-type="stadium">🏟️ Stadium</button>
         </div>
     </div>
+
+    <!-- Tooltip Element -->
+    <div id="tooltip"></div>
 
     <!-- Screen: Start -->
     <div id="screen-start" class="overlay">
@@ -305,27 +587,71 @@
                 optimize the environment.</p>
             <input type="text" id="playerName" placeholder="Enter Architect Name" maxlength="15">
             <button class="btn" onclick="startGame()">Start Project</button>
-            <button class="btn" style="margin-top:10px; background:var(--secondary)"
+            <button class="btn" style="margin-top:10px; background: linear-gradient(135deg, var(--secondary), #2563eb);"
                 onclick="showLeaderboard()">Leaderboard</button>
         </div>
     </div>
 
-    <!-- Screen: Result -->
-    <div id="screen-result" class="overlay hidden">
-        <div class="panel">
-            <h1>Project Results</h1>
-            <div style="font-size: 2.5rem; color: var(--primary); font-weight: bold;" id="final-score">0</div>
-            <div style="margin-bottom: 20px;">Rating: <span id="final-rating">0</span>/10</div>
-
-            <div class="ai-box">
-                <strong>🤖 AI Assessment:</strong>
-                <p id="ai-feedback">Analyzing...</p>
-                <hr style="border:0; border-top:1px solid #ddd;">
-                <p id="ai-tip"></p>
+    <!-- Screen: Result (Certificate Style) -->
+    <div id="screen-result" class="overlay hidden"
+        style="justify-content: flex-start; padding-left: 50px; background: transparent; pointer-events: none; backdrop-filter: blur(0px) !important;">
+        <div class="panel"
+            style="max-width: 500px; border: 8px double #fbbf24; background: #fffbeb; padding: 40px; position: relative; pointer-events: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+            <div
+                style="position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px; border: 2px solid #fbbf24; pointer-events: none;">
             </div>
 
-            <button class="btn" onclick="location.reload()">Build New
-                City</button>
+            <h2
+                style="font-family: 'Times New Roman', serif; color: #78350f; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 5px; font-size: 1.5rem;">
+                Certificate of Achievement</h2>
+            <p style="font-style: italic; color: #92400e; margin-bottom: 30px; font-family: 'Times New Roman', serif;">
+                This honor is hereby presented to</p>
+
+            <h1 style="font-family: 'Brush Script MT', cursive; font-size: 4rem; background: linear-gradient(135deg, #b45309 0%, #78350f 100%); -webkit-text-fill-color: transparent; -webkit-background-clip: text; margin: 10px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.1);"
+                id="cert-name">Architect Name</h1>
+            <p style="color: #92400e; line-height: 1.6; font-family: 'Times New Roman', serif; font-size: 1.1rem;">for
+                the exceptional design and implementation of a sustainable
+                urban ecosystem in <strong>ECOVERSE</strong>.</p>
+
+            <div
+                style="display: flex; justify-content: space-around; align-items: center; margin: 30px 0; border-top: 1px solid #fcd34d; border-bottom: 1px solid #fcd34d; padding: 20px 0;">
+                <div>
+                    <div style="font-size: 0.8rem; color: #999; text-transform: uppercase;">Final Sustainability Score
+                    </div>
+                    <div style="font-size: 2.5rem; color: var(--primary); font-weight: bold;" id="final-score">0</div>
+                </div>
+                <div
+                    style="width: 80px; height: 80px; background: #d4af37; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; transform: rotate(-15deg); box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                    <div
+                        style="text-align: center; border: 2px solid white; width: 65px; height: 65px; border-radius: 50%; display: flex; flex-direction: column; justify-content: center;">
+                        <span style="font-size: 0.6rem;">RATING</span>
+                        <span style="font-size: 1.2rem;" id="final-rating">10</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ai-box" style="background: rgba(255,255,255,0.5); border: 1px solid #e0e0e0;">
+                <strong>AI Assessment & Recommendation:</strong>
+                <p id="ai-feedback" style="font-size: 0.85rem;">Analyzing design patterns...</p>
+                <p id="ai-tip" style="font-size: 0.85rem; color: #2e7d32; font-weight: normal;"></p>
+            </div>
+
+            <div style="margin-top: 30px; display: flex; gap: 10px; justify-content: center;">
+                <button class="btn" style="background: #2e7d32;" onclick="enterWalkMode()">🚶 Tour Your City</button>
+                <button class="btn" style="background: #2c3e50;" onclick="location.reload()">Start New Project</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exit Walk Mode Button -->
+    <button id="exit-walk" class="btn hidden"
+        style="position:fixed; bottom: 20px; right: 20px; width: auto; z-index: 2000;" onclick="exitWalkMode()">🚁 Stop
+        Tour (Fly Up)</button>
+
+    <!-- Touch Joystick -->
+    <div id="joystick-container" class="hidden">
+        <div id="joystick-base">
+            <div id="joystick-knob"></div>
         </div>
     </div>
 
@@ -337,7 +663,16 @@
             <button class="btn" onclick="closeLeaderboard()">Back</button>
             <button class="btn" style="background:var(--danger); margin-top:10px" onclick="adminClear()">Reset
                 History</button>
+        </div>
+    </div>
 
+    <!-- Screen: Fail -->
+    <div id="screen-fail" class="overlay hidden" style="background: rgba(0,0,0,0.85);">
+        <div class="panel" style="border-color: var(--danger);">
+            <h1 style="color: var(--danger);">⚠️ Project Failed</h1>
+            <p>You did not complete the city construction in time.</p>
+            <p>Minimum required buildings: <strong id="fail-count">0</strong>/10</p>
+            <button class="btn" onclick="location.reload()">Try Again</button>
         </div>
     </div>
 
@@ -348,62 +683,719 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAjkP1QVCUwf3ef5A16lbQeRJ3VpcwZNlc",
-            authDomain: "ecoverse-7530e.firebaseapp.com",
-            projectId: "ecoverse-7530e",
-            storageBucket: "ecoverse-7530e.appspot.com",
-            messagingSenderId: "588006729677",
-            appId: "1:588006729677:web:9e697cf1c7653c8871c684"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        let db = null;
         let leaderboardUnsub = null;
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyAjkP1QVCUwf3ef5A16lbQeRJ3VpcwZNlc",
+                authDomain: "ecoverse-7530e.firebaseapp.com",
+                projectId: "ecoverse-7530e",
+                storageBucket: "ecoverse-7530e.appspot.com",
+                messagingSenderId: "588006729677",
+                appId: "1:588006729677:web:9e697cf1c7653c8871c684"
+            };
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+        } catch (e) {
+            console.warn("Firebase unavailable – leaderboard disabled.", e);
+        }
     </script>
 
     <script>
         // --- Config ---
-        const OPENAI_KEY = "";
-        const GRID_SIZE = 10;
-        const CELL_SIZE = 2;
+        const CHUNK_SIZE = 40; // Increased to 40
+        const CELL_SIZE = 0.25; // Decreased from 1 to 0.5 for more accurate placement
         const MIN_OBJECTS = 10;
+        const RENDER_DISTANCE = 10; // Increased to 10 for more visible land
+        const HEIGHT_SCALE = 8; // Increased to 12 for more dramatic terrain
+        const NOISE_SCALE = 0.03;
+        const FLAT_ZONE_RADIUS = 15;
 
         const OBJ_CONFIG = {
-            solar: { score: 15, label: "Solar Plant" },
-            wind: { score: 15, label: "Wind Turbine" },
-            coal: { score: -25, label: "Coal Factory" },
-            eco: { score: 10, label: "Eco House" },
-            apart: { score: 5, label: "Apartment" },
-            tree: { score: 10, label: "Trees" },
-            bike: { score: 10, label: "Bike Station" },
-            car: { score: -10, label: "Car Park" },
-            bus: { score: 12, label: "Bus Terminal" },
-            recycle: { score: 15, label: "Recycle Center" },
-            dump: { score: -20, label: "Dump Yard" },
-            water: { score: 10, label: "Water Tank" }
+            // Energy
+            solar: { score: 15, label: "Solar Plant", desc: "Clean energy. Works better in Desert (+50% bonus). (+15 Pts)" },
+            wind: { score: 15, label: "Wind Turbine", desc: "Efficient on Hills (+50% bonus). (+15 Pts)" },
+            coal: { score: -25, label: "Coal Factory", desc: "High output but causes heavy pollution. (-25 Pts)" },
+            hydro: { score: 20, label: "Hydro Dam", desc: "Works only near river/shore. Penalty elsewhere. (+20 Pts)" },
+            nuclear: { score: -15, label: "Nuclear Plant", desc: "Huge power, generates waste. Risk factor. (-15 Pts)" },
+
+            // Living
+            eco: { score: 10, label: "Eco House", desc: "Sustainable housing with solar panels. (+10 Pts)" },
+            apart: { score: 5, label: "Apartment", desc: "High density living. Moderate impact. (+5 Pts)" },
+            tree: { score: 10, label: "Trees", desc: "Absorbs CO2 and provides shade. (+10 Pts)" },
+            mansion: { score: -5, label: "Mansion", desc: "Large footprint, high resource usage. (-5 Pts)" },
+            greenhouse: { score: 12, label: "Greenhouse", desc: "Local food production. Very Green. (+12 Pts)" },
+
+            // Transit
+            bike: { score: 10, label: "Bike Station", desc: "Promotes healthy, zero-emission travel. (+10 Pts)" },
+            car: { score: -10, label: "Car Park", desc: "Encourages traffic and smog. (-10 Pts)" },
+            bus: { score: 12, label: "Bus Terminal", desc: "Efficient public transport. (+12 Pts)" },
+            train: { score: 18, label: "Train Station", desc: "High capacity regional transit. (+18 Pts)" },
+            metro: { score: 20, label: "Metro Hub", desc: "The ultimate green transit solution. (+20 Pts)" },
+
+            // Waste & Resources
+            recycle: { score: 15, label: "Recycle Center", desc: "Reduces landfill waste significantly. (+15 Pts)" },
+            dump: { score: -20, label: "Dump Yard", desc: "Sores the land and smells bad. (-20 Pts)" },
+            water: { score: 10, label: "Water Tank", desc: "Essential water storage infrastructure. (+10 Pts)" },
+            compost: { score: 12, label: "Compost Facility", desc: "Turns waste into rich soil. (+12 Pts)" },
+
+            // Nature & Parks
+            park: { score: 15, label: "City Park", desc: "Green space for community happiness. (+15 Pts)" },
+            garden: { score: 12, label: "Community Garden", desc: "Shared space for growing food. (+12 Pts)" },
+            pond: { score: 10, label: "Pond", desc: "Supports local wildlife and cools the air. (+10 Pts)" },
+            fountain: { score: 8, label: "Fountain", desc: "Beautifies the city square. (+8 Pts)" },
+
+            // Commercial
+            market: { score: 5, label: "Farmers Market", desc: "Local produce, low carbon footprint. (+5 Pts)" },
+            shop: { score: 0, label: "Local Shop", desc: "Basic commercial amenity. (0 Pts)" },
+            mall: { score: -8, label: "Shopping Mall", desc: "High energy consumption and traffic. (-8 Pts)" },
+
+            // Infrastructure
+            hospital: { score: 8, label: "Hospital", desc: "Essential for public health. (+8 Pts)" },
+            school: { score: 10, label: "School", desc: "Investing in the future education. (+10 Pts)" },
+            library: { score: 8, label: "Library", desc: "Knowledge hub for the community. (+8 Pts)" },
+            stadium: { score: -5, label: "Stadium", desc: "Massive energy and noise production. (-5 Pts)" }
         };
 
         // --- State ---
         let scene, camera, renderer, controls, raycaster;
-        let gridHelper, ground;
         let selectedTool = 'solar';
         let placedObjects = [];
         let playerName = "";
         let mouse = new THREE.Vector2();
         let hoverMesh;
-        let ghost; // Placement ghost preview
+        let ghost;
+        let terrainChunks = new Map(); // Store terrain chunks by key "x,z"
+        let lastCameraChunk = { x: 0, z: 0 };
+        let smokeParticles = []; // Store smoke particle systems
+        let waterMesh = null;   // The animated water plane
+        let clock = new THREE.Clock();
+        const WATER_LEVEL = -5.0; // Lowered from -3.0 to reveal more land
+        let seededChunks = new Set(); // Track which chunks have had natural trees spawned
+        let gameTimer = null;
+        let timeLeft = 60;
+        let isWalkMode = false;
+        let moveState = { fwd: false, bwd: false, left: false, right: false };
+        let resultScreenVisible = false;
+        let isTourActive = false;
+        let feedbackSprites = [];
+        let feedbackTimer = 0;
 
-        // --- Initialization ---
-        window.onload = init;
+        // --- Sound Effects Manager (Web Audio API) ---
+        const SFX = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            playPop() {
+                try {
+                    this.init();
+                    if (!this.ctx) return;
+                    const o = this.ctx.createOscillator();
+                    const g = this.ctx.createGain();
+                    o.type = 'sine';
+                    o.frequency.setValueAtTime(400, this.ctx.currentTime);
+                    o.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.1);
+                    g.gain.setValueAtTime(0.3, this.ctx.currentTime); // Louder (was 0.1)
+                    g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+                    o.connect(g); g.connect(this.ctx.destination);
+                    o.start(); o.stop(this.ctx.currentTime + 0.1);
+                } catch (e) { console.warn("SFX Error", e); }
+            },
+            playTrash() {
+                try {
+                    this.init();
+                    if (!this.ctx) return;
+                    const o = this.ctx.createOscillator();
+                    const g = this.ctx.createGain();
+                    o.type = 'sawtooth';
+                    o.frequency.setValueAtTime(150, this.ctx.currentTime);
+                    o.frequency.linearRampToValueAtTime(50, this.ctx.currentTime + 0.2);
+                    g.gain.setValueAtTime(0.2, this.ctx.currentTime); // Louder (was 0.05)
+                    g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.2);
+                    o.connect(g); g.connect(this.ctx.destination);
+                    o.start(); o.stop(this.ctx.currentTime + 0.2);
+                } catch (e) { console.warn("SFX Error", e); }
+            },
+            playFanfare() {
+                try {
+                    this.init();
+                    if (!this.ctx) return;
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, i) => {
+                        const o = this.ctx.createOscillator();
+                        const g = this.ctx.createGain();
+                        o.frequency.setValueAtTime(freq, this.ctx.currentTime + i * 0.1);
+                        g.gain.setValueAtTime(0, this.ctx.currentTime + i * 0.1);
+                        g.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + i * 0.1 + 0.05);
+                        g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + i * 0.1 + 0.3);
+                        o.connect(g); g.connect(this.ctx.destination);
+                        o.start(this.ctx.currentTime + i * 0.1);
+                        o.stop(this.ctx.currentTime + i * 0.1 + 0.3);
+                    });
+                } catch (e) { console.warn("SFX Error", e); }
+            },
+
+            // --- Ambient Soundscape System ---
+            ambience: {
+                nature: null, natureGain: null,
+                industrial: null, industrialGain: null,
+                birdTimer: null, clankTimer: null,
+
+                start() {
+                    try {
+                        SFX.init();
+                        const ctx = SFX.ctx;
+                        if (!ctx) return;
+
+                        // Clear previous timers if any
+                        if (this.birdTimer) clearInterval(this.birdTimer);
+
+                        // Nature Layer (Wind/Rustle) - Louder
+                        this.natureGain = ctx.createGain();
+                        this.natureGain.gain.value = 0.15;
+                        this.natureGain.connect(ctx.destination);
+                        this.createNoiseLayer(this.natureGain, 400);
+
+                        // Industrial Layer (Deep Hum) - Louder
+                        this.industrialGain = ctx.createGain();
+                        this.industrialGain.gain.value = 0.05;
+                        this.industrialGain.connect(ctx.destination);
+                        this.createHumLayer(this.industrialGain);
+
+                        // Random Birds
+                        this.birdTimer = setInterval(() => {
+                            // Play bird if pollution is low (< 50%)
+                            // We check gain value as a proxy for pollution level or just check the pollution global if available,
+                            // but relying on gain is fine if updated correctly.
+                            try {
+                                if (Math.random() < 0.4 && this.natureGain.gain.value > 0.005) {
+                                    SFX.ambience.playBird();
+                                }
+                            } catch (e) { }
+                        }, 2000); // Check every 2s
+
+                    } catch (e) { console.warn("Ambience Start Error", e); }
+                },
+
+                createNoiseLayer(target, freq) {
+                    const ctx = SFX.ctx;
+                    const bufferSize = ctx.sampleRate * 2;
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+                    const source = ctx.createBufferSource();
+                    source.buffer = buffer;
+                    source.loop = true;
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.value = freq;
+                    source.connect(filter);
+                    filter.connect(target);
+                    source.start();
+                },
+
+                createHumLayer(target) {
+                    const ctx = SFX.ctx;
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+
+                    osc.type = 'sawtooth';
+                    osc.frequency.value = 60; // Low hum frequency
+
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.value = 120; // Muffle it
+
+                    gain.gain.value = 0.8; // Base volume of hum
+
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(target);
+                    osc.start();
+                },
+
+                playBird() {
+                    const ctx = SFX.ctx;
+                    const t = ctx.currentTime;
+
+                    const osc = ctx.createOscillator();
+                    const mod = ctx.createOscillator();
+                    const modGain = ctx.createGain();
+                    const mainGain = ctx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(2000, t);
+                    osc.frequency.exponentialRampToValueAtTime(1000, t + 0.15);
+
+                    mod.type = 'sine';
+                    mod.frequency.value = 30;
+                    modGain.gain.value = 500;
+
+                    mod.connect(modGain);
+                    modGain.connect(osc.frequency);
+
+                    mainGain.gain.setValueAtTime(0, t);
+                    mainGain.gain.linearRampToValueAtTime(0.3, t + 0.02); // Louder bird (0.3)
+                    mainGain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+
+                    osc.connect(mainGain);
+                    mainGain.connect(ctx.destination);
+
+                    osc.start(); mod.start();
+                    osc.stop(t + 0.25); mod.stop(t + 0.25);
+                },
+
+                update(pollution) {
+                    // Minimal logic: Only increase industrial hum with pollution
+                    // Keep nature volume constant
+                    if (!this.industrialGain) return;
+                    const p = Math.max(0, Math.min(100, pollution)) / 100;
+                    const now = SFX.ctx.currentTime;
+
+                    // Industrial volume scales with pollution
+                    this.industrialGain.gain.setTargetAtTime(0.2 * p, now, 0.5);
+                }
+            }
+        };
+
+        // --- Perlin Noise Implementation ---
+        class PerlinNoise {
+            constructor(seed = Math.random()) {
+                this.seed = seed;
+                this.p = this.generatePermutation();
+            }
+
+            generatePermutation() {
+                const p = [];
+                for (let i = 0; i < 256; i++) p[i] = i;
+
+                // Shuffle using seed
+                for (let i = 255; i > 0; i--) {
+                    const n = Math.floor((this.seed * 1000 + i) % (i + 1));
+                    [p[i], p[n]] = [p[n], p[i]];
+                }
+
+                return [...p, ...p];
+            }
+
+            fade(t) {
+                return t * t * t * (t * (t * 6 - 15) + 10);
+            }
+
+            lerp(t, a, b) {
+                return a + t * (b - a);
+            }
+
+            grad(hash, x, y) {
+                const h = hash & 15;
+                const u = h < 8 ? x : y;
+                const v = h < 4 ? y : h === 12 || h === 14 ? x : 0;
+                return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
+            }
+
+            noise(x, y) {
+                const X = Math.floor(x) & 255;
+                const Y = Math.floor(y) & 255;
+
+                x -= Math.floor(x);
+                y -= Math.floor(y);
+
+                const u = this.fade(x);
+                const v = this.fade(y);
+
+                const a = this.p[X] + Y;
+                const b = this.p[X + 1] + Y;
+
+                return this.lerp(v,
+                    this.lerp(u, this.grad(this.p[a], x, y), this.grad(this.p[b], x - 1, y)),
+                    this.lerp(u, this.grad(this.p[a + 1], x, y - 1), this.grad(this.p[b + 1], x - 1, y - 1))
+                );
+            }
+        }
+
+        const perlin = new PerlinNoise(Math.random()); // Random seed for unique terrain each play
+
+        // --- Smoke Particle System ---
+        class SmokeParticle {
+            constructor(position) {
+                this.particles = [];
+                this.position = position.clone();
+                this.maxParticles = 20;
+
+                for (let i = 0; i < this.maxParticles; i++) {
+                    const geometry = new THREE.SphereGeometry(0.2, 8, 8);
+                    const material = new THREE.MeshBasicMaterial({
+                        color: 0x555555,
+                        transparent: true,
+                        opacity: 0.6
+                    });
+                    const particle = new THREE.Mesh(geometry, material);
+                    particle.position.copy(this.position);
+                    particle.position.y += 2.5; // Start at smokestack top
+
+                    // Random particle properties
+                    particle.userData = {
+                        velocity: new THREE.Vector3(
+                            (Math.random() - 0.5) * 0.02,
+                            0.02 + Math.random() * 0.02,
+                            (Math.random() - 0.5) * 0.02
+                        ),
+                        life: Math.random() * 50,
+                        maxLife: 50 + Math.random() * 50,
+                        initialY: this.position.y + 2.5
+                    };
+
+                    scene.add(particle);
+                    this.particles.push(particle);
+                }
+            }
+
+            update() {
+                this.particles.forEach(particle => {
+                    // Move particle
+                    particle.position.add(particle.userData.velocity);
+
+                    // Age particle
+                    particle.userData.life++;
+
+                    // Fade out as it rises
+                    const lifeRatio = particle.userData.life / particle.userData.maxLife;
+                    particle.material.opacity = 0.6 * (1 - lifeRatio);
+                    particle.scale.setScalar(1 + lifeRatio * 2);
+
+                    // Reset particle when it dies
+                    if (particle.userData.life >= particle.userData.maxLife) {
+                        particle.position.copy(this.position);
+                        particle.position.y = particle.userData.initialY;
+                        particle.userData.life = 0;
+                        particle.userData.velocity.set(
+                            (Math.random() - 0.5) * 0.02,
+                            0.02 + Math.random() * 0.02,
+                            (Math.random() - 0.5) * 0.02
+                        );
+                        particle.scale.setScalar(1);
+                    }
+                });
+            }
+
+            remove() {
+                this.particles.forEach(particle => {
+                    scene.remove(particle);
+                    particle.geometry.dispose();
+                    particle.material.dispose();
+                });
+                this.particles = [];
+            }
+        }
+
+        // --- Terrain Generation ---
+        function getChunkKey(x, z) {
+            return `${x},${z}`;
+        }
+
+        function generateTerrainChunk(chunkX, chunkZ) {
+            const key = getChunkKey(chunkX, chunkZ);
+            if (terrainChunks.has(key)) return;
+
+            const segments = 40;
+            const chunkWorldSize = CHUNK_SIZE * CELL_SIZE;
+
+            // World-space corner of this chunk
+            const originX = chunkX * chunkWorldSize;
+            const originZ = chunkZ * chunkWorldSize;
+
+            const positions = [];
+            const colors = [];
+            const indices = [];
+
+            // Build vertex grid entirely in WORLD space
+            for (let row = 0; row <= segments; row++) {
+                for (let col = 0; col <= segments; col++) {
+                    const wx = originX + (col / segments) * chunkWorldSize;
+                    const wz = originZ + (row / segments) * chunkWorldSize;
+                    const wy = getTerrainHeight(wx, wz);
+
+                    positions.push(wx, wy, wz);
+
+                    // --- Smooth gradient colouring ---
+                    // Colour stops (height → colour)
+                    const stops = [
+                        { h: -6, r: 0x1a, g: 0x4e, b: 0x6e }, // deep water
+                        { h: -3.2, r: 0x2e, g: 0x7d, b: 0x9e }, // shallow water edge (near WATER_LEVEL -3.0)
+                        { h: -2.8, r: 0xc2, g: 0xb2, b: 0x80 }, // sand/shore (just above water)
+                        { h: 0.0, r: 0x5a, g: 0xa8, b: 0x55 }, // grass
+                        { h: 2.0, r: 0x7a, g: 0xb8, b: 0x5a }, // bright grass
+                        { h: 4.0, r: 0x8e, g: 0x9e, b: 0x6a }, // hillside
+                        { h: 6.5, r: 0x7a, g: 0x6e, b: 0x5c }, // rocky brown
+                        { h: 9.0, r: 0xd0, g: 0xd0, b: 0xd0 }  // snowy peak
+                    ];
+
+                    let cr = stops[0].r, cg = stops[0].g, cb = stops[0].b;
+                    for (let s = 1; s < stops.length; s++) {
+                        if (wy <= stops[s].h) {
+                            const t = (wy - stops[s - 1].h) / (stops[s].h - stops[s - 1].h);
+                            const tc = Math.max(0, Math.min(1, t));
+                            cr = stops[s - 1].r + (stops[s].r - stops[s - 1].r) * tc;
+                            cg = stops[s - 1].g + (stops[s].g - stops[s - 1].g) * tc;
+                            cb = stops[s - 1].b + (stops[s].b - stops[s - 1].b) * tc;
+                            break;
+                        }
+                        cr = stops[s].r; cg = stops[s].g; cb = stops[s].b;
+                    }
+                    colors.push(cr / 255, cg / 255, cb / 255);
+                }
+            }
+
+            // Two triangles per grid cell
+            for (let row = 0; row < segments; row++) {
+                for (let col = 0; col < segments; col++) {
+                    const a = row * (segments + 1) + col;
+                    const b = a + 1;
+                    const c = a + (segments + 1);
+                    const d = c + 1;
+                    indices.push(a, c, b);
+                    indices.push(b, c, d);
+                }
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            geometry.setIndex(indices);
+            geometry.computeVertexNormals();
+
+            const material = new THREE.MeshStandardMaterial({
+                vertexColors: true,
+                flatShading: false,
+                side: THREE.DoubleSide
+            });
+
+            const terrain = new THREE.Mesh(geometry, material);
+            // No rotation or position offset — vertices are already world-aligned
+            terrain.receiveShadow = true;
+            terrain.userData.isGround = true;
+            terrain.renderOrder = 0; // always draw before water
+
+            scene.add(terrain);
+            terrainChunks.set(key, terrain);
+
+            // --- Natural Tree Seeding ---
+            if (!seededChunks.has(key)) {
+                seededChunks.add(key);
+
+                // Deterministic count based on key (simple hash)
+                let hash = 0;
+                for (let i = 0; i < key.length; i++) hash = ((hash << 5) - hash) + key.charCodeAt(i);
+                const seed = Math.abs(hash);
+
+                const treeCount = 2 + (seed % 5); // 2 to 6 trees per chunk
+                for (let i = 0; i < treeCount; i++) {
+                    const localX = ((seed + i * 13) % 100) / 100;
+                    const localZ = ((seed + i * 17) % 100) / 100;
+
+                    const wx = originX + localX * chunkWorldSize;
+                    const wz = originZ + localZ * chunkWorldSize;
+                    const wy = getTerrainHeight(wx, wz);
+
+                    // Only place on valid terrain (not water, not steep snow, not spawn flat zone)
+                    const distFromSpawn = Math.sqrt(wx * wx + wz * wz);
+                    if (wy > 0.2 && wy < 5.0 && distFromSpawn > FLAT_ZONE_RADIUS + 2) {
+                        // Align to grid for consistency with user placement
+                        const gx = Math.round(wx / CELL_SIZE) * CELL_SIZE;
+                        const gz = Math.round(wz / CELL_SIZE) * CELL_SIZE;
+
+                        // Check if something is already there (unlikely for new chunks but good to check)
+                        const exists = placedObjects.find(o =>
+                            Math.abs(o.x - gx) < 0.1 && Math.abs(o.z - gz) < 0.1
+                        );
+
+                        if (!exists) {
+                            placeObject(gx, gz, wy, 'tree', true);
+                        }
+                    }
+                }
+            }
+        }
+
+        function updateTerrainChunks() {
+            const camChunkX = Math.floor(camera.position.x / (CHUNK_SIZE * CELL_SIZE));
+            const camChunkZ = Math.floor(camera.position.z / (CHUNK_SIZE * CELL_SIZE));
+
+            // Only update if camera moved to a new chunk
+            if (camChunkX === lastCameraChunk.x && camChunkZ === lastCameraChunk.z) return;
+
+            lastCameraChunk = { x: camChunkX, z: camChunkZ };
+
+            // Generate chunks around camera
+            for (let x = camChunkX - RENDER_DISTANCE; x <= camChunkX + RENDER_DISTANCE; x++) {
+                for (let z = camChunkZ - RENDER_DISTANCE; z <= camChunkZ + RENDER_DISTANCE; z++) {
+                    generateTerrainChunk(x, z);
+                }
+            }
+
+            // Remove far chunks
+            const chunksToRemove = [];
+            terrainChunks.forEach((chunk, key) => {
+                const [x, z] = key.split(',').map(Number);
+                const distance = Math.max(Math.abs(x - camChunkX), Math.abs(z - camChunkZ));
+
+                if (distance > RENDER_DISTANCE + 1) {
+                    scene.remove(chunk);
+                    chunk.geometry.dispose();
+                    chunk.material.dispose();
+                    chunksToRemove.push(key);
+                }
+            });
+
+            chunksToRemove.forEach(key => terrainChunks.delete(key));
+        }
+
+        function getTerrainHeight(x, z) {
+            const distFromSpawn = Math.sqrt(x * x + z * z);
+
+            let flatFactor = 1.0;
+            if (distFromSpawn < FLAT_ZONE_RADIUS) {
+                flatFactor = distFromSpawn / FLAT_ZONE_RADIUS;
+                flatFactor = flatFactor * flatFactor;
+            }
+
+            // Base terrain noise
+            let h = 0;
+            h += perlin.noise(x * NOISE_SCALE, z * NOISE_SCALE) * 1.0;
+            h += perlin.noise(x * NOISE_SCALE * 2, z * NOISE_SCALE * 2) * 0.5;
+            h += perlin.noise(x * NOISE_SCALE * 4, z * NOISE_SCALE * 4) * 0.25;
+
+            // Normalize (-1 to 1 range from noise) and exaggerate for mountains/plains
+            // Power of 2.5 creates sharp peaks and wide flat valleys/plains
+            let sign = h < 0 ? -1 : 1;
+            let exaggerated = sign * Math.pow(Math.abs(h), 1.8);
+
+            return exaggerated * HEIGHT_SCALE * flatFactor;
+        }
+
+        function getBiome(h) {
+            if (h > 9.0) return 'snow';
+            if (h > 4.0) return 'hill';
+            if (h > 2.0) return 'forest'; // bright grass
+            if (h > 0.0) return 'plains'; // grass
+            if (h > -2.8) return 'desert'; // sand/shore
+            return 'water';
+        }
+
+        // --- Water Plane (animated via canvas texture, translucent) ---
+        let waterCanvas, waterCtx, waterTexture;
+
+        function createWaterPlane() {
+            // --- off-screen canvas that we paint each frame ---
+            waterCanvas = document.createElement('canvas');
+            waterCanvas.width = 64;
+            waterCanvas.height = 64;
+            waterCtx = waterCanvas.getContext('2d');
+
+            waterTexture = new THREE.CanvasTexture(waterCanvas);
+            waterTexture.wrapS = THREE.RepeatWrapping;
+            waterTexture.wrapT = THREE.RepeatWrapping;
+
+            const size = 800; // Increased size to be safe
+            const geo = new THREE.PlaneGeometry(size, size, 128, 128); // Higher detail for waves
+            geo.rotateX(-Math.PI / 2);
+
+            const mat = new THREE.MeshPhongMaterial({
+                map: waterTexture,
+                color: 0x1a6fa3,          // base tint
+                emissive: 0x0a3d5c,          // dark depth tint
+                transparent: true,
+                opacity: 0.5,
+                shininess: 100,
+                specular: 0x88ccdd,
+                side: THREE.DoubleSide,
+                depthWrite: true
+            });
+
+            waterTexture.repeat.set(12, 12); // Denser ripple texture
+            waterTexture.wrapS = THREE.RepeatWrapping;
+            waterTexture.wrapT = THREE.RepeatWrapping;
+
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.y = WATER_LEVEL;
+            mesh.renderOrder = 1;
+            scene.add(mesh);
+            return mesh;
+        }
+
+        function updateWaterWaves(time) {
+            if (!waterMesh) return;
+            const pos = waterMesh.geometry.attributes.position;
+            const camX = camera.position.x;
+            const camZ = camera.position.z;
+
+            for (let i = 0; i < pos.count; i++) {
+                const x = pos.getX(i);
+                const z = pos.getZ(i);
+
+                // Calculate world coordinates for seamless waves as plane moves
+                const worldX = camX + x;
+                const worldZ = camZ + z;
+
+                // Wave formula: Multi-layered sine waves (reduced amplitude)
+                let h = Math.sin(worldX * 0.2 + time * 1.5) * 0.1;
+                h += Math.sin(worldZ * 0.25 + time * 1.2) * 0.08;
+                h += Math.sin((worldX + worldZ) * 0.1 + time * 0.8) * 0.05;
+
+                pos.setY(i, h);
+            }
+            pos.needsUpdate = true;
+        }
+
+        // Paint animated ripple noise onto the water canvas
+        let waterFrame = 0;
+        function updateWaterTexture(time) {
+            if (!waterCtx) return;
+            waterFrame++;
+            if (waterFrame % 3 !== 0) return; // only repaint every 3rd frame
+
+            const w = waterCanvas.width, h = waterCanvas.height;
+            const imgData = waterCtx.createImageData(w, h);
+            const d = imgData.data;
+            const t = time * 40;
+
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const nx = x + t;
+                    const nz = y + t * 0.7;
+                    const v1 = Math.sin(nx * 0.15 + nz * 0.08) * 0.5 + 0.5;
+                    const v2 = Math.sin(nx * 0.07 - nz * 0.2 + 3.0) * 0.5 + 0.5;
+                    const v3 = Math.sin((nx + nz) * 0.1 + 1.5) * 0.5 + 0.5;
+                    const val = (v1 * 0.5 + v2 * 0.3 + v3 * 0.2);
+
+                    const r = 30 + val * 60;
+                    const g = 100 + val * 80;
+                    const b = 180 + val * 50;
+
+                    const i = (y * w + x) * 4;
+                    d[i] = r;
+                    d[i + 1] = g;
+                    d[i + 2] = b;
+                    d[i + 3] = 255;
+                }
+            }
+            waterCtx.putImageData(imgData, 0, 0);
+            waterTexture.needsUpdate = true;
+        }
 
         function init() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xa0d8ef);
-            scene.fog = new THREE.Fog(0xa0d8ef, 15, 60);
+            scene.background = new THREE.Color(0x87ceeb);
+            scene.fog = new THREE.Fog(0x87ceeb, 30, 150);
 
-            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(20, 20, 20);
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 500);
+            camera.position.set(10, 15, 10);
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -416,35 +1408,31 @@
             controls.dampingFactor = 0.05;
             controls.maxPolarAngle = Math.PI / 2.1;
             controls.minDistance = 5;
-            controls.maxDistance = 50;
+            controls.maxDistance = 100;
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
             scene.add(ambientLight);
 
-            const sun = new THREE.DirectionalLight(0xffffff, 0.9);
-            sun.position.set(20, 40, 20);
+            const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+            sun.position.set(50, 80, 50);
             sun.castShadow = true;
-            sun.shadow.camera.left = -20;
-            sun.shadow.camera.right = 20;
-            sun.shadow.camera.top = 20;
-            sun.shadow.camera.bottom = -20;
-            sun.shadow.mapSize.width = 1024;
-            sun.shadow.mapSize.height = 1024;
+            sun.shadow.camera.left = -50;
+            sun.shadow.camera.right = 50;
+            sun.shadow.camera.top = 50;
+            sun.shadow.camera.bottom = -50;
+            sun.shadow.mapSize.width = 2048;
+            sun.shadow.mapSize.height = 2048;
             scene.add(sun);
 
-            // Ground
-            const groundGeo = new THREE.PlaneGeometry(GRID_SIZE * CELL_SIZE, GRID_SIZE * CELL_SIZE);
-            const groundMat = new THREE.MeshStandardMaterial({ color: 0x86c06a });
-            ground = new THREE.Mesh(groundGeo, groundMat);
-            ground.rotation.x = -Math.PI / 2;
-            ground.receiveShadow = true;
-            scene.add(ground);
+            // Generate initial terrain chunks
+            for (let x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
+                for (let z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) {
+                    generateTerrainChunk(x, z);
+                }
+            }
 
-            gridHelper = new THREE.GridHelper(GRID_SIZE * CELL_SIZE, GRID_SIZE, 0x000000, 0x000000);
-            gridHelper.material.opacity = 0.1;
-            gridHelper.material.transparent = true;
-            gridHelper.position.y = 0.01;
-            scene.add(gridHelper);
+            // Water plane (sits on top of terrain at WATER_LEVEL)
+            waterMesh = createWaterPlane();
 
             raycaster = new THREE.Raycaster();
 
@@ -454,13 +1442,67 @@
             hoverMesh = new THREE.Mesh(hoverGeo, hoverMat);
             scene.add(hoverMesh);
 
-            window.addEventListener('resize', onWindowResize);
-            renderer.domElement.addEventListener('mousemove', onMouseMove);
-            renderer.domElement.addEventListener('pointerdown', onMouseDown);
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('mousemove', onDocumentMouseMove, false);
+            renderer.domElement.addEventListener('pointerdown', onDocumentMouseDown, false); // Use pointerdown for broader value? Actually let's stick to mouse/touch separate for clarity if needed, or just add touch specific logic.
 
-            // Initial Ghost
+            // --- Touch Support for Placement ---
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let touchStartTime = 0;
+
+            renderer.domElement.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                    touchStartTime = performance.now();
+                }
+            }, { passive: false });
+
+            renderer.domElement.addEventListener('touchend', (e) => {
+                if (isWalkMode) return; // Walk mode handles its own touch
+                if (e.changedTouches.length === 1) {
+                    const touchEndX = e.changedTouches[0].clientX;
+                    const touchEndY = e.changedTouches[0].clientY;
+                    const deltaX = Math.abs(touchEndX - touchStartX);
+                    const deltaY = Math.abs(touchEndY - touchStartY);
+                    const duration = performance.now() - touchStartTime;
+
+                    // Threshold for "Tap" vs "Drag"
+                    if (deltaX < 10 && deltaY < 10 && duration < 300) {
+                        // It's a tap!
+                        // e.preventDefault(); // Prevent phantom mouse clicks if needed, but might block UI. 
+
+                        // Normalize touch to -1 to +1
+                        mouse.x = (touchEndX / window.innerWidth) * 2 - 1;
+                        mouse.y = -(touchEndY / window.innerHeight) * 2 + 1;
+
+                        raycaster.setFromCamera(mouse, camera);
+                        const intersects = raycaster.intersectObjects(scene.children, true); // Recursive for complex objects
+                        const terrainHit = intersects.find(i => i.object.userData.isGround); // Find terrain specifically if possible, or just first hit
+
+                        if (terrainHit) {
+                            const x = Math.round(terrainHit.point.x / CELL_SIZE) * CELL_SIZE;
+                            const z = Math.round(terrainHit.point.z / CELL_SIZE) * CELL_SIZE;
+
+                            // Consolidated occupancy check
+                            const exists = placedObjects.find(o =>
+                                Math.abs(o.x - x) < 0.1 && Math.abs(o.z - z) < 0.1
+                            );
+
+                            if (selectedTool === 'delete') {
+                                if (exists && !exists.isNatural) removeObject(exists);
+                            } else {
+                                if (exists) removeObject(exists); // Replace existing
+                                const y = terrainHit.point.y;
+                                placeObject(x, z, y, selectedTool);
+                            }
+                        }
+                    }
+                }
+            }, { passive: false });
+
             setTool('solar');
-
             animate();
         }
 
@@ -470,16 +1512,26 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        function onMouseMove(event) {
+        function onDocumentMouseMove(event) {
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
         }
 
-        function onMouseDown(event) {
+        function onDocumentMouseDown(event) {
+            if (isWalkMode || resultScreenVisible) return;
+            if (event.pointerType === 'touch') return; // Ignore touch start to avoid stale mouse coords
             if (event.button !== 0) return;
 
+            // Update mouse coords immediately
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
             raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects([ground, ...placedObjects.map(o => o.mesh)], true);
+
+            // Get all terrain meshes
+            const terrainMeshes = Array.from(terrainChunks.values());
+            const allObjects = [...terrainMeshes, ...placedObjects.map(o => o.mesh)];
+            const intersects = raycaster.intersectObjects(allObjects, true);
 
             if (intersects.length > 0) {
                 const intersect = intersects[0];
@@ -492,18 +1544,21 @@
                     });
                     if (hitObj) removeObject(hitObj);
                 } else {
-                    // Only place on ground
-                    const groundIntersect = raycaster.intersectObject(ground);
-                    if (groundIntersect.length > 0) {
-                        const pos = groundIntersect[0].point;
+                    // Find ground intersection
+                    const groundIntersect = intersects.find(i => i.object.userData.isGround);
+                    if (groundIntersect) {
+                        const pos = groundIntersect.point;
                         const gx = Math.round(pos.x / CELL_SIZE) * CELL_SIZE;
                         const gz = Math.round(pos.z / CELL_SIZE) * CELL_SIZE;
+                        // Use the actual intersection point's y-coordinate for accurate placement
+                        const terrainY = pos.y;
 
-                        // Check if tile is occupied
-                        const exists = placedObjects.find(o => o.x === gx && o.z === gz);
+                        const exists = placedObjects.find(o =>
+                            Math.abs(o.x - gx) < 0.1 && Math.abs(o.z - gz) < 0.1
+                        );
                         if (exists) removeObject(exists);
 
-                        placeObject(gx, gz, selectedTool);
+                        placeObject(gx, gz, terrainY, selectedTool);
                     }
                 }
             }
@@ -511,23 +1566,55 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            controls.update();
+            const delta = clock.getDelta();
 
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObject(ground);
-            if (intersects.length > 0) {
-                hoverMesh.visible = true;
-                const gx = Math.round(intersects[0].point.x / CELL_SIZE) * CELL_SIZE;
-                const gz = Math.round(intersects[0].point.z / CELL_SIZE) * CELL_SIZE;
-                hoverMesh.position.set(gx, 0.05, gz);
-
-                if (ghost && selectedTool !== 'delete') {
-                    ghost.visible = true;
-                    ghost.position.set(gx, 0, gz);
-                }
+            if (isWalkMode) {
+                handleWalking(delta);
+                controls.update(); // Keep updating controls for rotation
             } else {
+                controls.update();
+            }
+
+            updateTerrainChunks();
+
+            if (isWalkMode || resultScreenVisible || isTourActive) {
                 hoverMesh.visible = false;
                 if (ghost) ghost.visible = false;
+            } else {
+                raycaster.setFromCamera(mouse, camera);
+                const terrainMeshes = Array.from(terrainChunks.values());
+                const intersects = raycaster.intersectObjects(terrainMeshes, true);
+
+                if (intersects.length > 0) {
+                    const groundIntersect = intersects.find(i => i.object.userData.isGround);
+                    if (groundIntersect) {
+                        hoverMesh.visible = true;
+                        const gx = Math.round(groundIntersect.point.x / CELL_SIZE) * CELL_SIZE;
+                        const gz = Math.round(groundIntersect.point.z / CELL_SIZE) * CELL_SIZE;
+                        // Use actual terrain intersection height
+                        const terrainY = groundIntersect.point.y;
+
+                        hoverMesh.position.set(gx, terrainY + 0.05, gz);
+
+                        if (ghost && selectedTool !== 'delete') {
+                            ghost.visible = true;
+                            ghost.position.set(gx, terrainY, gz);
+                        }
+                    } else {
+                        hoverMesh.visible = false;
+                        if (ghost) ghost.visible = false;
+                    }
+                } else {
+                    hoverMesh.visible = false;
+                    if (ghost) ghost.visible = false;
+                }
+            }
+
+
+            feedbackTimer += delta;
+            if (feedbackTimer > 3.0) { // Every 3 seconds
+                triggerSpawnFeedback();
+                feedbackTimer = 0;
             }
 
             // Animate objects
@@ -536,14 +1623,33 @@
                     const blades = obj.mesh.getObjectByName('blades');
                     if (blades) blades.rotation.z += 0.1;
                 }
-                // Moving traffic logic
-                if (obj.type === 'car' || obj.type === 'bus') {
-                    obj.mesh.position.x += 0.02;
-                    if (obj.mesh.position.x > (GRID_SIZE * CELL_SIZE / 2)) {
-                        obj.mesh.position.x = -(GRID_SIZE * CELL_SIZE / 2);
+
+                // Moving traffic logic with terrain following
+                if ((obj.type === 'car' || obj.type === 'bus') && obj.moveSpeed) {
+                    obj.mesh.position.x += obj.moveSpeed * obj.moveDirection;
+
+                    // Get terrain height at current position
+                    const currentHeight = getTerrainHeight(obj.mesh.position.x, obj.mesh.position.z);
+                    obj.mesh.position.y = currentHeight;
+
+                    // Reverse direction when reaching path limits
+                    if (Math.abs(obj.mesh.position.x - obj.startX) > obj.pathRange) {
+                        obj.moveDirection *= -1;
                     }
                 }
             });
+
+            // Update smoke particles
+            smokeParticles.forEach(smoke => smoke.update());
+
+            // --- Water: animate texture + waves + follow camera ---
+            if (waterMesh) {
+                const time = clock.getElapsedTime();
+                updateWaterTexture(time);
+                updateWaterWaves(time);
+                waterMesh.position.x = camera.position.x;
+                waterMesh.position.z = camera.position.z;
+            }
 
             renderer.render(scene, camera);
         }
@@ -554,29 +1660,39 @@
 
             switch (type) {
                 case 'solar':
-                    const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.5), new THREE.MeshStandardMaterial({ color: 0x888888 }));
-                    stand.position.y = 0.25;
+                    const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.6), new THREE.MeshStandardMaterial({ color: 0x444444 }));
+                    stand.position.y = 0.3;
                     group.add(stand);
-                    const panel = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.05, 1), new THREE.MeshStandardMaterial({ color: 0x1a237e }));
-                    panel.position.y = 0.6;
-                    panel.rotation.x = -Math.PI / 6;
-                    group.add(panel);
-                    const wireframe = new THREE.Mesh(new THREE.BoxGeometry(1.41, 0.06, 1.01), new THREE.MeshStandardMaterial({ color: 0x3f51b5, wireframe: true }));
-                    panel.add(wireframe);
+                    const basePlate = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.05, 1.1), new THREE.MeshStandardMaterial({ color: 0x333333 }));
+                    basePlate.position.y = 0.6;
+                    basePlate.rotation.x = -Math.PI / 6;
+                    group.add(basePlate);
+                    // Add 4 individual panels
+                    for (let i = 0; i < 4; i++) {
+                        const p = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.02, 0.45), new THREE.MeshStandardMaterial({ color: 0x1a237e, emissive: 0x011627, shininess: 100 }));
+                        p.position.set((i < 2 ? -0.35 : 0.35), 0.04, (i % 2 === 0 ? -0.25 : 0.25));
+                        basePlate.add(p);
+                        const trim = new THREE.Mesh(new THREE.BoxGeometry(0.67, 0.01, 0.47), new THREE.MeshStandardMaterial({ color: 0x555555, wireframe: true }));
+                        p.add(trim);
+                    }
                     break;
 
                 case 'wind':
-                    const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.2, 3), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-                    tower.position.y = 1.5;
+                    const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.2, 3.2), new THREE.MeshStandardMaterial({ color: 0xf5f5f5 }));
+                    tower.position.y = 1.6;
                     group.add(tower);
+                    const nacelle = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.8), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+                    nacelle.position.y = 3.2;
+                    group.add(nacelle);
+                    const hub = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), new THREE.MeshStandardMaterial({ color: 0xdddddd }));
+                    hub.position.set(0, 3.2, 0.45);
+                    group.add(hub);
                     const blades = new THREE.Group();
                     blades.name = 'blades';
-                    blades.position.y = 3;
-                    blades.position.z = 0.2;
-                    group.add(blades);
+                    hub.add(blades);
                     for (let i = 0; i < 3; i++) {
-                        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.4, 0.05), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-                        blade.position.y = 0.7;
+                        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.15, 1.6, 0.03), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+                        blade.position.y = 0.8;
                         const bGroup = new THREE.Group();
                         bGroup.rotation.z = (i * Math.PI * 2) / 3;
                         bGroup.add(blade);
@@ -585,15 +1701,24 @@
                     break;
 
                 case 'coal':
-                    const factoryBody = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.2, 1.4), new THREE.MeshStandardMaterial({ color: 0x424242 }));
-                    factoryBody.position.y = 0.6;
-                    group.add(factoryBody);
-                    const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 2.5), new THREE.MeshStandardMaterial({ color: 0x212121 }));
-                    stack.position.set(0.4, 1.25, 0.4);
+                    const mainBldg = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.2, 1.5), new THREE.MeshStandardMaterial({ color: 0x424242 }));
+                    mainBldg.position.y = 0.6;
+                    group.add(mainBldg);
+                    const subBldg = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), new THREE.MeshStandardMaterial({ color: 0x333333 }));
+                    subBldg.position.set(1.0, 0.4, 0);
+                    group.add(subBldg);
+                    // Pipes
+                    const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.2), new THREE.MeshStandardMaterial({ color: 0x757575 }));
+                    pipe.rotation.z = Math.PI / 2;
+                    pipe.position.set(0.5, 0.8, 0.8);
+                    group.add(pipe);
+                    const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.35, 3), new THREE.MeshStandardMaterial({ color: 0x212121 }));
+                    stack.position.set(0.4, 1.5, 0.4);
                     group.add(stack);
-                    const band = new THREE.Mesh(new THREE.CylinderGeometry(0.31, 0.31, 0.2), new THREE.MeshStandardMaterial({ color: 0xc62828 }));
-                    band.position.y = 2.2;
-                    group.add(band);
+                    const band = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.26, 0.2), new THREE.MeshStandardMaterial({ color: 0xc62828 }));
+                    band.position.y = 2.4;
+                    stack.add(band);
+                    group.userData.hasSmoke = true;
                     break;
 
                 case 'eco':
@@ -604,32 +1729,69 @@
                     roof.position.y = 1.2;
                     roof.rotation.y = Math.PI / 4;
                     group.add(roof);
+                    // Solar on roof
+                    const miniSolar = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.02, 0.4), new THREE.MeshStandardMaterial({ color: 0x1a237e }));
+                    miniSolar.position.set(0, 1.1, 0.3);
+                    miniSolar.rotation.x = -Math.PI / 4;
+                    group.add(miniSolar);
                     const door = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.5, 0.1), new THREE.MeshStandardMaterial({ color: 0x5d4037 }));
                     door.position.set(0, 0.25, 0.6);
                     group.add(door);
+                    // Window
+                    const win = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.05), new THREE.MeshStandardMaterial({ color: 0x81d4fa, emissive: 0x0277bd, transparent: true, opacity: 0.6 }));
+                    win.position.set(0.4, 0.5, 0.6);
+                    group.add(win);
                     break;
 
                 case 'apart':
-                    const towerBody = new THREE.Mesh(new THREE.BoxGeometry(1.2, 4, 1.2), new THREE.MeshStandardMaterial({ color: 0xe0e0e0 }));
-                    towerBody.position.y = 2;
+                    const towerBody = new THREE.Mesh(new THREE.BoxGeometry(1.2, 4.5, 1.2), new THREE.MeshStandardMaterial({ color: 0xe0e0e0 }));
+                    towerBody.position.y = 2.25;
                     group.add(towerBody);
-                    for (let i = 0; i < 6; i++) {
-                        const win = new THREE.Mesh(new THREE.BoxGeometry(1.22, 0.2, 1.22), new THREE.MeshStandardMaterial({ color: 0x81d4fa }));
-                        win.position.y = 0.5 + i * 0.6;
-                        group.add(win);
+                    // Balconies
+                    for (let i = 0; i < 5; i++) {
+                        const balc = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.1, 0.4), new THREE.MeshStandardMaterial({ color: 0x9e9e9e }));
+                        balc.position.set(0, 0.8 + i * 0.8, 0.6);
+                        group.add(balc);
+                        const winA = new THREE.Mesh(new THREE.BoxGeometry(1, 0.5, 0.1), new THREE.MeshStandardMaterial({ color: 0x81d4fa, emissive: 0x01579b }));
+                        winA.position.set(0, 1.1 + i * 0.8, 0.6);
+                        group.add(winA);
                     }
+                    const hvac = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 0.6), new THREE.MeshStandardMaterial({ color: 0x616161 }));
+                    hvac.position.y = 4.7;
+                    group.add(hvac);
                     break;
 
                 case 'tree':
-                    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 1), new THREE.MeshStandardMaterial({ color: 0x5d4037 }));
-                    trunk.position.y = 0.5;
-                    group.add(trunk);
-                    const fol1 = new THREE.Mesh(new THREE.SphereGeometry(0.7, 8, 8), new THREE.MeshStandardMaterial({ color: 0x1b5e20 }));
-                    fol1.position.y = 1.3;
-                    group.add(fol1);
-                    const fol2 = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 8), new THREE.MeshStandardMaterial({ color: 0x2e7d32 }));
-                    fol2.position.set(0.3, 1.6, -0.2);
-                    group.add(fol2);
+                    const treeStyle = Math.random();
+                    if (treeStyle < 0.4) {
+                        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 1.2), new THREE.MeshStandardMaterial({ color: 0x5d4037 }));
+                        trunk.position.y = 0.6;
+                        group.add(trunk);
+                        for (let i = 0; i < 3; i++) {
+                            const fol = new THREE.Mesh(new THREE.SphereGeometry(0.7 - i * 0.1, 8, 8), new THREE.MeshStandardMaterial({ color: 0x1b5e20 + i * 0x050505 }));
+                            fol.position.y = 1.3 + i * 0.4;
+                            fol.position.x = (Math.random() - 0.5) * 0.3;
+                            fol.position.z = (Math.random() - 0.5) * 0.3;
+                            group.add(fol);
+                        }
+                    } else if (treeStyle < 0.7) {
+                        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 1.2), new THREE.MeshStandardMaterial({ color: 0x3e2723 }));
+                        trunk.position.y = 0.6;
+                        group.add(trunk);
+                        for (let i = 0; i < 4; i++) {
+                            const fol = new THREE.Mesh(new THREE.ConeGeometry(0.9 - i * 0.2, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x1a4a1a + i * 0x020202 }));
+                            fol.position.y = 1.0 + i * 0.5;
+                            group.add(fol);
+                        }
+                    } else {
+                        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 2.0), new THREE.MeshStandardMaterial({ color: 0xe0e0e0 }));
+                        trunk.position.y = 1.0;
+                        group.add(trunk);
+                        const leaves = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 8), new THREE.MeshStandardMaterial({ color: 0x7cb342 }));
+                        leaves.scale.set(1.2, 2.2, 1.2);
+                        leaves.position.y = 2.2;
+                        group.add(leaves);
+                    }
                     break;
 
                 case 'bike':
@@ -644,15 +1806,24 @@
                     }
                     break;
 
+
                 case 'car':
                     const carBody = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.5, 0.8), new THREE.MeshStandardMaterial({ color: 0xe53935 }));
                     carBody.position.y = 0.4;
                     group.add(carBody);
-                    const roofC = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.4, 0.7), new THREE.MeshStandardMaterial({ color: 0xe53935 }));
+                    const roofC = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.4, 0.7), new THREE.MeshStandardMaterial({ color: 0xe53935 }));
                     roofC.position.y = 0.8;
                     group.add(roofC);
+                    // Headlights
+                    const headL = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), new THREE.MeshStandardMaterial({ color: 0xffffaa, emissive: 0xffffee }));
+                    headL.position.set(0.7, 0.5, 0.25);
+                    group.add(headL);
+                    const headR = headL.clone();
+                    headR.position.z = -0.25;
+                    group.add(headR);
+                    // Wheels
                     [[-0.4, 0.4], [0.4, 0.4], [-0.4, -0.4], [0.4, -0.4]].forEach(p => {
-                        const w = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.2, 8), new THREE.MeshStandardMaterial({ color: 0x212121 }));
+                        const w = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.2, 12), new THREE.MeshStandardMaterial({ color: 0x111111 }));
                         w.rotation.z = Math.PI / 2;
                         w.position.set(p[0], 0.2, p[1]);
                         group.add(w);
@@ -660,12 +1831,19 @@
                     break;
 
                 case 'bus':
-                    const busBody = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1, 0.9), new THREE.MeshStandardMaterial({ color: 0xffeb3b }));
-                    busBody.position.y = 0.6;
+                    const busBody = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.1, 1.0), new THREE.MeshStandardMaterial({ color: 0xffeb3b }));
+                    busBody.position.y = 0.65;
                     group.add(busBody);
-                    const winB = new THREE.Mesh(new THREE.BoxGeometry(1.82, 0.3, 0.7), new THREE.MeshStandardMaterial({ color: 0x212121 }));
-                    winB.position.y = 0.8;
+                    const winB = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.4, 1.02), new THREE.MeshStandardMaterial({ color: 0x333333, emissive: 0x111111 }));
+                    winB.position.y = 0.85;
                     group.add(winB);
+                    // Lights
+                    const bHeadL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.2, 0.3), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff }));
+                    bHeadL.position.set(1.1, 0.5, 0.3);
+                    group.add(bHeadL);
+                    const bHeadR = bHeadL.clone();
+                    bHeadR.position.z = -0.3;
+                    group.add(bHeadR);
                     break;
 
                 case 'recycle':
@@ -697,6 +1875,264 @@
                     support.position.y = 0.9;
                     group.add(support);
                     break;
+
+                case 'hydro':
+                    const dam = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2.0, 0.6), new THREE.MeshStandardMaterial({ color: 0x888888 }));
+                    dam.position.y = 1.0;
+                    group.add(dam);
+                    // Spillway details
+                    for (let i = 0; i < 3; i++) {
+                        const slot = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.0, 0.7), new THREE.MeshStandardMaterial({ color: 0x555555 }));
+                        slot.position.set(-0.7 + i * 0.7, 1.2, 0.1);
+                        group.add(slot);
+                    }
+                    const generatorRoom = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 1.2), new THREE.MeshStandardMaterial({ color: 0x0288d1 }));
+                    generatorRoom.position.set(0, 0.4, 0.8);
+                    group.add(generatorRoom);
+                    break;
+
+                case 'nuclear':
+                    const reactorBase = new THREE.Mesh(new THREE.BoxGeometry(2, 0.8, 2), new THREE.MeshStandardMaterial({ color: 0x757575 }));
+                    reactorBase.position.y = 0.4;
+                    group.add(reactorBase);
+                    // Twin cooling towers
+                    for (let i = 0; i < 2; i++) {
+                        const towerN = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.55, 2.8, 12), new THREE.MeshStandardMaterial({ color: 0xcccccc }));
+                        towerN.position.set(-0.5 + i * 1.0, 1.4, -0.4);
+                        group.add(towerN);
+                        const rim = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.05, 8, 16), new THREE.MeshStandardMaterial({ color: 0x999999 }));
+                        rim.rotation.x = Math.PI / 2;
+                        rim.position.y = 1.4;
+                        towerN.add(rim);
+                    }
+                    const dome = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xeeeeee }));
+                    dome.position.set(0, 0.8, 0.5);
+                    group.add(dome);
+                    break;
+
+                case 'mansion':
+                    const mansionBody = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.4, 1.8), new THREE.MeshStandardMaterial({ color: 0xfafafa }));
+                    mansionBody.position.y = 0.7;
+                    group.add(mansionBody);
+                    const mRoof = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.2, 1.9), new THREE.MeshStandardMaterial({ color: 0x455a64 }));
+                    mRoof.position.y = 1.4;
+                    group.add(mRoof);
+                    // Columns
+                    for (let x = -0.8; x <= 0.8; x += 0.4) {
+                        const colM = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.4), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+                        colM.position.set(x, 0.7, 0.95);
+                        group.add(colM);
+                    }
+                    // Mini Pool
+                    const pool = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.05, 1.0), new THREE.MeshStandardMaterial({ color: 0x00bcd4 }));
+                    pool.position.set(0, 0.03, 1.6);
+                    group.add(pool);
+                    break;
+
+                case 'greenhouse':
+                    const ghBase = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.2, 1.4), new THREE.MeshStandardMaterial({ color: 0x4e342e }));
+                    ghBase.position.y = 0.1;
+                    group.add(ghBase);
+                    const ghFrame = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.0, 1.3), new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: true }));
+                    ghFrame.position.y = 0.6;
+                    group.add(ghFrame);
+                    const ghGlass = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.9, 1.3), new THREE.MeshStandardMaterial({ color: 0xe1f5fe, transparent: true, opacity: 0.3 }));
+                    ghGlass.position.y = 0.55;
+                    group.add(ghGlass);
+                    // Interior plants
+                    for (let i = 0; i < 4; i++) {
+                        const pG = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), new THREE.MeshStandardMaterial({ color: 0x4caf50 }));
+                        pG.position.set((i % 2 - 0.5) * 0.8, 0.3, (Math.floor(i / 2) - 0.5) * 0.6);
+                        group.add(pG);
+                    }
+                    break;
+
+                case 'train':
+                    const platform = new THREE.Mesh(new THREE.BoxGeometry(2, 0.2, 1.5), new THREE.MeshStandardMaterial({ color: 0x757575 }));
+                    platform.position.y = 0.1;
+                    group.add(platform);
+                    const trainBody = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.8, 0.8), new THREE.MeshStandardMaterial({ color: 0x1976d2 }));
+                    trainBody.position.y = 0.6;
+                    group.add(trainBody);
+                    const trainRoof = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.1, 0.9), new THREE.MeshStandardMaterial({ color: 0x0d47a1 }));
+                    trainRoof.position.y = 1;
+                    group.add(trainRoof);
+                    break;
+
+                case 'metro':
+                    const metroBase = new THREE.Mesh(new THREE.BoxGeometry(2, 0.3, 2), new THREE.MeshStandardMaterial({ color: 0x424242 }));
+                    metroBase.position.y = 0.15;
+                    group.add(metroBase);
+                    const metroEntrance = new THREE.Mesh(new THREE.BoxGeometry(1, 0.8, 1), new THREE.MeshStandardMaterial({ color: 0x616161 }));
+                    metroEntrance.position.y = 0.55;
+                    group.add(metroEntrance);
+                    const metroSign = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.1), new THREE.MeshStandardMaterial({ color: 0xff5722 }));
+                    metroSign.rotation.x = Math.PI / 2;
+                    metroSign.position.set(0, 1, 0.5);
+                    group.add(metroSign);
+                    break;
+
+                case 'compost':
+                    const compostBin = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1, 1.4), new THREE.MeshStandardMaterial({ color: 0x6d4c41 }));
+                    compostBin.position.y = 0.5;
+                    group.add(compostBin);
+                    const compostLid = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.1, 1.5), new THREE.MeshStandardMaterial({ color: 0x4e342e }));
+                    compostLid.position.y = 1.05;
+                    group.add(compostLid);
+                    break;
+
+                case 'park':
+                    const parkGround = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.05, 1.8), new THREE.MeshStandardMaterial({ color: 0x66bb6a }));
+                    parkGround.position.y = 0.025;
+                    group.add(parkGround);
+                    for (let i = 0; i < 3; i++) {
+                        const parkTree = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.6), new THREE.MeshStandardMaterial({ color: 0x5d4037 }));
+                        parkTree.position.set((i - 1) * 0.6, 0.3, 0);
+                        group.add(parkTree);
+                        const leaves = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), new THREE.MeshStandardMaterial({ color: 0x2e7d32 }));
+                        leaves.position.copy(parkTree.position);
+                        leaves.position.y = 0.7;
+                        group.add(leaves);
+                    }
+                    const bench = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.1, 0.3), new THREE.MeshStandardMaterial({ color: 0x8d6e63 }));
+                    bench.position.set(0, 0.15, 0.6);
+                    group.add(bench);
+                    break;
+
+                case 'garden':
+                    const gardenBed = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.2, 1.6), new THREE.MeshStandardMaterial({ color: 0x795548 }));
+                    gardenBed.position.y = 0.1;
+                    group.add(gardenBed);
+                    for (let i = 0; i < 4; i++) {
+                        const plant = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.3, 8), new THREE.MeshStandardMaterial({ color: 0x4caf50 }));
+                        plant.position.set((i % 2 - 0.5) * 0.6, 0.35, (Math.floor(i / 2) - 0.5) * 0.6);
+                        group.add(plant);
+                    }
+                    break;
+
+                case 'pond':
+                    const pondWater = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.2), new THREE.MeshStandardMaterial({ color: 0x1976d2, transparent: true, opacity: 0.7 }));
+                    pondWater.position.y = 0.1;
+                    group.add(pondWater);
+                    const pondEdge = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.1, 8, 16), new THREE.MeshStandardMaterial({ color: 0x8d6e63 }));
+                    pondEdge.rotation.x = Math.PI / 2;
+                    pondEdge.position.y = 0.1;
+                    group.add(pondEdge);
+                    break;
+
+                case 'fountain':
+                    const fBase = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.0, 0.4, 16), new THREE.MeshStandardMaterial({ color: 0xbdbdbd }));
+                    fBase.position.y = 0.2;
+                    group.add(fBase);
+                    const fTier = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 0.1, 16), new THREE.MeshStandardMaterial({ color: 0xeeeeee }));
+                    fTier.position.y = 0.55;
+                    group.add(fTier);
+                    // Water spray particles (using small spheres)
+                    for (let i = 0; i < 8; i++) {
+                        const spray = new THREE.Mesh(new THREE.SphereGeometry(0.08, 4, 4), new THREE.MeshStandardMaterial({ color: 0x81d4fa, transparent: true, opacity: 0.6 }));
+                        const angle = (i / 8) * Math.PI * 2;
+                        spray.position.set(Math.cos(angle) * 0.4, 0.7, Math.sin(angle) * 0.4);
+                        group.add(spray);
+                    }
+                    const centerSpout = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.8), new THREE.MeshStandardMaterial({ color: 0xe0e0e0 }));
+                    centerSpout.position.y = 0.8;
+                    group.add(centerSpout);
+                    break;
+
+                case 'market':
+                    const mktBase = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.1, 1.4), new THREE.MeshStandardMaterial({ color: 0x9e9e9e }));
+                    mktBase.position.y = 0.05;
+                    group.add(mktBase);
+                    for (let i = 0; i < 3; i++) {
+                        const stall = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.6, 0.4), new THREE.MeshStandardMaterial({ color: 0x8d6e63 }));
+                        stall.position.set(-0.6 + i * 0.6, 0.35, 0);
+                        group.add(stall);
+                        const awning = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.6), new THREE.MeshStandardMaterial({ color: i % 2 === 0 ? 0xe53935 : 0xffffff }));
+                        awning.position.set(-0.6 + i * 0.6, 0.7, 0.1);
+                        awning.rotation.x = Math.PI / 10;
+                        group.add(awning);
+                    }
+                    break;
+
+                case 'shop':
+                    const sBodyS = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.0, 1.4), new THREE.MeshStandardMaterial({ color: 0xfff9c4 }));
+                    sBodyS.position.y = 0.5;
+                    group.add(sBodyS);
+                    const awningS = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.4, 0.4), new THREE.MeshStandardMaterial({ color: 0x3949ab }));
+                    awningS.position.set(0, 0.8, 0.6);
+                    awningS.rotation.x = Math.PI / 4;
+                    group.add(awningS);
+                    break;
+
+                case 'mall':
+                    const mallBase = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.2, 2.5), new THREE.MeshStandardMaterial({ color: 0xe0e0e0 }));
+                    mallBase.position.y = 0.6;
+                    group.add(mallBase);
+                    const mallGlass = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.8, 2.6), new THREE.MeshStandardMaterial({ color: 0x81d4fa, transparent: true, opacity: 0.4 }));
+                    mallGlass.position.y = 1.0;
+                    group.add(mallGlass);
+                    const mallSignM = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.4, 0.1), new THREE.MeshStandardMaterial({ color: 0xff1744 }));
+                    mallSignM.position.set(0, 1.5, 1.25);
+                    group.add(mallSignM);
+                    break;
+
+                case 'hospital':
+                    const hospBody = new THREE.Mesh(new THREE.BoxGeometry(2.0, 2.2, 1.6), new THREE.MeshStandardMaterial({ color: 0xf5f5f5 }));
+                    hospBody.position.y = 1.1;
+                    group.add(hospBody);
+                    const emergencyWing = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.2), new THREE.MeshStandardMaterial({ color: 0xeeeeee }));
+                    emergencyWing.position.set(1.4, 0.5, 0);
+                    group.add(emergencyWing);
+                    // Medical Cross
+                    const crossG = new THREE.Group();
+                    crossG.position.set(0, 1.5, 0.82);
+                    group.add(crossG);
+                    const crossH = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.2, 0.05), new THREE.MeshStandardMaterial({ color: 0xe53935 }));
+                    const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.8, 0.05), new THREE.MeshStandardMaterial({ color: 0xe53935 }));
+                    crossG.add(crossH, crossV);
+                    break;
+
+                case 'school':
+                    const sBody = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.2, 1.8), new THREE.MeshStandardMaterial({ color: 0xfff176 }));
+                    sBody.position.y = 0.6;
+                    group.add(sBody);
+                    const sRoof = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.2, 2.0), new THREE.MeshStandardMaterial({ color: 0xb71c1c }));
+                    sRoof.position.y = 1.3;
+                    group.add(sRoof);
+                    const clockTower = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.0, 0.6), new THREE.MeshStandardMaterial({ color: 0xfff176 }));
+                    clockTower.position.set(-0.6, 1.8, 0);
+                    group.add(clockTower);
+                    const clockFace = new THREE.Mesh(new THREE.CircleGeometry(0.2, 16), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+                    clockFace.position.set(-0.6, 2.0, 0.31);
+                    group.add(clockFace);
+                    break;
+
+                case 'library':
+                    const lBody = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.6, 1.8), new THREE.MeshStandardMaterial({ color: 0xd7ccc8 }));
+                    lBody.position.y = 0.8;
+                    group.add(lBody);
+                    // Classical Portico
+                    const portico = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.2, 0.6), new THREE.MeshStandardMaterial({ color: 0x8d6e63 }));
+                    portico.position.set(0, 1.7, 1.0);
+                    group.add(portico);
+                    for (let i = 0; i < 3; i++) {
+                        const colL = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.6), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+                        colL.position.set(-0.4 + i * 0.4, 0.8, 1.0);
+                        group.add(colL);
+                    }
+                    break;
+
+                case 'stadium':
+                    const stadiumBase = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 0.8, 16), new THREE.MeshStandardMaterial({ color: 0xeeeeee }));
+                    stadiumBase.position.y = 0.4;
+                    group.add(stadiumBase);
+                    const stadiumField = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.1, 16), new THREE.MeshStandardMaterial({ color: 0x4caf50 }));
+                    stadiumField.position.y = 0.85;
+                    group.add(stadiumField);
+                    const stadiumRoof = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.1, 0.3, 16), new THREE.MeshStandardMaterial({ color: 0x616161 }));
+                    stadiumRoof.position.y = 1.2;
+                    group.add(stadiumRoof);
+                    break;
             }
 
             group.traverse(child => {
@@ -708,11 +2144,16 @@
             return group;
         }
 
-        function placeObject(x, z, type) {
+        function placeObject(x, z, terrainY, type, isNatural = false) {
             const model = createModel(type);
-            model.position.set(x, 0, z);
+            model.position.set(x, terrainY, z);
             model.scale.set(0, 0, 0);
             scene.add(model);
+            try {
+                if (!isNatural) SFX.playPop();
+            } catch (e) {
+                console.warn("Pop Sound failed", e);
+            }
 
             const start = performance.now();
             const duration = 400;
@@ -724,12 +2165,43 @@
             };
             requestAnimationFrame(animateIn);
 
-            placedObjects.push({ x, z, type, mesh: model });
+            const objData = { x, z, y: terrainY, type, mesh: model, isNatural };
+
+            // Add smoke system for coal factories
+            if (type === 'coal' && model.userData.hasSmoke) {
+                const smokePos = new THREE.Vector3(x + 0.4, terrainY, z + 0.4);
+                const smoke = new SmokeParticle(smokePos);
+                smokeParticles.push(smoke);
+                objData.smoke = smoke;
+            }
+
+            // Add movement data for cars and buses
+            if (type === 'car' || type === 'bus') {
+                objData.moveSpeed = type === 'car' ? 0.03 : 0.02;
+                objData.moveDirection = Math.random() > 0.5 ? 1 : -1;
+                objData.startX = x;
+                objData.pathRange = 15; // How far they travel
+            }
+
+            placedObjects.push(objData);
             updateStats();
+
+            if (!isNatural) {
+                const label = OBJ_CONFIG[type].label;
+                showNotification(`🏗️ ${label} constructed!`, 'success');
+            }
         }
 
         function removeObject(obj) {
             scene.remove(obj.mesh);
+            SFX.playTrash();
+
+            // Remove smoke if it exists
+            if (obj.smoke) {
+                obj.smoke.remove();
+                smokeParticles = smokeParticles.filter(s => s !== obj.smoke);
+            }
+
             placedObjects = placedObjects.filter(o => o !== obj);
             updateStats();
         }
@@ -739,22 +2211,67 @@
             let pollution = 0;
 
             placedObjects.forEach(o => {
-                score += OBJ_CONFIG[o.type].score;
+                let baseScore = OBJ_CONFIG[o.type].score;
+                let multiplier = 1.0;
 
-                if (o.type === 'coal' || o.type === 'dump' || o.type === 'car') pollution += 8;
-                if (o.type === 'tree' || o.type === 'solar' || o.type === 'wind') pollution -= 5;
+                // --- Biome Multipliers ---
+                const biome = getBiome(o.y);
+
+                if (o.type === 'solar' && biome === 'desert') {
+                    multiplier = 1.5;
+                } else if (o.type === 'wind' && biome === 'hill') {
+                    multiplier = 1.5;
+                } else if (o.type === 'hydro') {
+                    // Hydro only near rivers (shore height range)
+                    if (o.y >= -5.5 && o.y <= -4.5) {
+                        multiplier = 1.0;
+                    } else {
+                        multiplier = 0.2; // Significant penalty
+                    }
+                }
+
+                if (!o.isNatural) score += Math.floor(baseScore * multiplier);
+
+                // Increase pollution impact
+                if (o.type === 'coal') pollution += 15; // Was 8
+                if (o.type === 'dump') pollution += 12; // Was 8
+                if (o.type === 'car') pollution += 10; // Was 8
+                if (o.type === 'nuclear') pollution += 5; // Risk factor
+
+                // Offsets (Trees reduce pollution)
+                if (o.type === 'tree') {
+                    // Natural forests help a tiny bit, but manually placed trees are "super-trees" for balance
+                    pollution -= o.isNatural ? 0.02 : 2.0;
+                }
+                if (o.type === 'park') pollution -= 5;
+                if (o.type === 'solar') pollution -= 3;
+                if (o.type === 'wind') pollution -= 3;
             });
 
-            pollution = Math.max(0, Math.min(100, pollution));
-            const happiness = Math.max(0, 100 - pollution + Math.floor(score / 5));
+            pollution = Math.max(0, Math.min(100, Math.ceil(pollution)));
+            const happiness = Math.max(0, Math.floor(score / 5) - pollution);
 
             document.getElementById('live-score').innerText = score;
             document.getElementById('pollution').innerText = pollution;
             document.getElementById('happiness').innerText = happiness;
 
-            // Fog visual feedback
-            scene.fog.near = 10 + (100 - pollution) / 4;
-            scene.fog.far = 60 - pollution / 2;
+            // Update Ambient Sound Blending
+            SFX.ambience.update(pollution);
+
+            // --- Visual Pollution Feedback ---
+            // --- Visual Pollution Feedback ---
+            const pRatio = pollution / 100;
+            // Lerp Sky: Deep Sky Blue -> Dark Smog Grey
+            const freshSky = new THREE.Color(0x87ceeb);
+            const smogSky = new THREE.Color(0x4b4b4b);
+            const currentSky = freshSky.clone().lerp(smogSky, pRatio);
+
+            scene.background = currentSky;
+            scene.fog.color = currentSky;
+
+            // Adjust Fog Density (Visibility)
+            scene.fog.near = 20 * (1 - pRatio * 0.5); // Fog gets closer as pollution rises
+            scene.fog.far = 150 * (1 - pRatio * 0.6); // Visibility drops significantly
 
             const btn = document.getElementById('eval-btn');
             const count = placedObjects.length;
@@ -769,106 +2286,195 @@
             playerName = name;
             document.getElementById('screen-start').classList.add('hidden');
             document.getElementById('hud').classList.remove('hidden');
+
+            // Start 60s Timer (Logic first, audio later)
+            timeLeft = 60;
+            document.getElementById('timer').innerText = timeLeft;
+            if (gameTimer) clearInterval(gameTimer);
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(gameTimer);
+                    evaluateCity(); // Auto-evaluate when time's up
+                }
+            }, 1000);
+
+            // Start Ambience (Safe)
+            try {
+                SFX.ambience.start();
+            } catch (e) {
+                console.warn("Ambience start failed", e);
+            }
         }
 
         async function evaluateCity() {
+            if (gameTimer) clearInterval(gameTimer);
+
+            if (placedObjects.length < MIN_OBJECTS) {
+                // FAIL STATE
+                document.getElementById('hud').classList.add('hidden');
+                document.getElementById('screen-fail').classList.remove('hidden');
+                document.getElementById('fail-count').innerText = placedObjects.length;
+                SFX.playTrash(); // Sad sound
+                return;
+            }
+
+            resultScreenVisible = true;
             document.getElementById('hud').classList.add('hidden');
             document.getElementById('screen-result').classList.remove('hidden');
 
             const objectsList = placedObjects.map(o => OBJ_CONFIG[o.type].label).join(", ");
             const totalScore = parseInt(document.getElementById('live-score').innerText);
+            const pollution = parseInt(document.getElementById('pollution').innerText);
+
+            // --- Auto-Center Camera on City ---
+            // Only focus on USER placed objects, not random nature
+            const userObjects = placedObjects.filter(o => !o.isNatural);
+
+            // If user placed nothing, maybe focus on 0,0 or just include one user object?
+            // If empty, fall back to whatever is in placedObjects or just origin.
+            const targetList = userObjects.length > 0 ? userObjects : placedObjects;
+
+            if (targetList.length > 0) {
+                // Calculate average center of relevant objects
+                let avgX = 0, avgZ = 0;
+                targetList.forEach(obj => {
+                    avgX += obj.x;
+                    avgZ += obj.z;
+                });
+                avgX /= targetList.length;
+                avgZ /= targetList.length;
+
+                // Animate camera to a nice viewing angle
+                // Shift target slightly right (Z axis or X axis depending on rotation) to account for left panel
+                // Actually, if we rotate, the "right" changes.
+                // Simple fix: Center on city, but zoom out enough that it fits in the right 2/3rds.
+
+                const targetPos = new THREE.Vector3(avgX, 25, avgZ + 40); // Higher and further back based on center
+                const currentPos = camera.position.clone();
+                const startTarget = controls.target.clone();
+                const endTarget = new THREE.Vector3(avgX, 0, avgZ);
+
+                const duration = 1500; // 1.5s transition
+                const start = performance.now();
+
+                function animateCamera(now) {
+                    const elapsed = now - start;
+                    const t = Math.min(elapsed / duration, 1);
+                    const ease = t * (2 - t);
+
+                    camera.position.lerpVectors(currentPos, targetPos, ease);
+                    controls.target.lerpVectors(startTarget, endTarget, ease);
+                    controls.update();
+
+                    if (t < 1) {
+                        requestAnimationFrame(animateCamera);
+                    } else {
+                        controls.autoRotate = true;
+                        controls.autoRotateSpeed = 2.0;
+                        controls.enableZoom = false;
+                        controls.enablePan = false;
+                    }
+                }
+                requestAnimationFrame(animateCamera);
+            }
+
+            const happiness = parseInt(document.getElementById('happiness').innerText);
 
             let aiData;
-            aiData = await askAI(objectsList);
+            aiData = await askAI(objectsList, totalScore, pollution, happiness);
+
             document.getElementById('final-score').innerText = totalScore;
             document.getElementById('final-rating').innerText = aiData.rating;
             document.getElementById('ai-feedback').innerText = aiData.feedback;
             document.getElementById('ai-tip').innerText = "💡 Tip: " + aiData.tip;
+            document.getElementById('cert-name').innerText = playerName;
 
             saveScore(playerName, totalScore, aiData.rating);
+            SFX.playFanfare();
+
+            // Cinematic Mode
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 2.0;
+            document.getElementById('screen-result').style.display = 'flex';
+            document.getElementById('screen-result').style.justifyContent = 'flex-start';
+            document.getElementById('screen-result').style.paddingLeft = '5vw';
+
             if (totalScore > 100) spawnConfetti();
         }
 
         async function saveScore(name, score, rating) {
-            await db.collection("leaderboard").add({
-                name,
-                score,
-                rating,
-                time: Date.now()
-            });
+            if (!db) return;
+            try {
+                await db.collection("leaderboard").add({
+                    name,
+                    score,
+                    rating,
+                    time: Date.now()
+                });
+            } catch (e) { console.warn("saveScore failed", e); }
         }
-
 
         function showLeaderboard() {
             const list = document.getElementById('leaderboard-list');
-            list.innerHTML = "Loading live scores...";
-
             document.getElementById('screen-leaderboard').classList.remove('hidden');
 
+            if (!db) {
+                list.innerHTML = "<p>Leaderboard unavailable offline.</p>";
+                return;
+            }
+
+            list.innerHTML = "Loading live scores...";
             if (leaderboardUnsub) leaderboardUnsub();
 
             leaderboardUnsub = db.collection("leaderboard")
                 .orderBy("score", "desc")
                 .limit(10)
                 .onSnapshot(snapshot => {
-
                     let html = "";
                     let rank = 1;
 
                     snapshot.forEach(doc => {
                         const e = doc.data();
-
                         const topClass = rank === 1 ? "top" : "";
                         const meClass = e.name === playerName ? "me" : "";
-
 
                         html += `
     <div class="lb-entry ${topClass} ${meClass}">
         <span>${rank}. <strong>${e.name}</strong></span>
         <span>${e.score} pts (${e.rating}/10)</span>
     </div>`;
-
                         rank++;
                     });
 
                     list.innerHTML = html || "<p>No scores yet.</p>";
                     const myRow = list.querySelector('.me');
                     if (myRow) myRow.scrollIntoView({ behavior: "smooth", block: "center" });
-
-
                 });
         }
+
         async function clearLB() {
+            if (!db) return alert("Leaderboard unavailable.");
             if (!confirm("Delete ALL leaderboard scores?")) return;
-
-            const snap = await db.collection("leaderboard").get();
-
-            const batch = db.batch();
-
-            snap.forEach(doc => {
-                batch.delete(doc.ref);
-            });
-
-            await batch.commit();
-
-            alert("Leaderboard cleared.");
+            try {
+                const snap = await db.collection("leaderboard").get();
+                const batch = db.batch();
+                snap.forEach(doc => { batch.delete(doc.ref); });
+                await batch.commit();
+                alert("Leaderboard cleared.");
+            } catch (e) { console.warn("clearLB failed", e); }
         }
 
         function adminClear() {
             const pass = prompt("Admin password:");
-            if (pass === "eco2026") clearLB();
+            if (pass === "evmiscool2026") clearLB();
         }
-
-
-
-
-
 
         function closeLeaderboard() {
             if (leaderboardUnsub) leaderboardUnsub();
             document.getElementById('screen-leaderboard').classList.add('hidden');
         }
-
 
         function spawnConfetti() {
             for (let i = 0; i < 100; i++) {
@@ -889,7 +2495,6 @@
             selectedTool = tool;
             document.querySelectorAll('.tool-btn').forEach(b => b.classList.toggle('active', b.dataset.type === tool));
 
-            // Manage ghost model
             if (ghost) scene.remove(ghost);
             if (tool !== 'delete') {
                 ghost = createModel(tool);
@@ -903,40 +2508,279 @@
                 scene.add(ghost);
             }
         }
-        window.askAI = async function (objects) {
-    try {
-        const response = await fetch("/.netlify/functions/openrouter", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ objects: objects })
-        });
 
-        const data = await response.json();
-        console.log("Received from function:", data);
+        window.askAI = async function (objects, score, pollution, happiness) {
+            try {
+                const response = await fetch("ai.php", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ objects, score, pollution, happiness })
+                });
 
-        // Check for errors
-        if (data.error) {
-            return { 
-                rating: 5, 
-                feedback: data.error, 
-                tip: "Check your configuration." 
-            };
+                const data = await response.json();
+
+                // PHP already returns final {rating, feedback, tip}
+                if (data.error) {
+                    return {
+                        rating: 5,
+                        feedback: data.error,
+                        tip: "Check server configuration."
+                    };
+                }
+
+                return data;
+
+            } catch (err) {
+                console.error("PHP error:", err);
+                return {
+                    rating: 5,
+                    feedback: "Could not connect to AI service.",
+                    tip: "Check hosting / internet."
+                };
+            }
+        };
+
+
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notification-container');
+            if (!container) return;
+            const n = document.createElement('div');
+            n.className = `notification ${type}`;
+            n.innerText = message;
+            container.appendChild(n);
+            setTimeout(() => {
+                n.style.opacity = '0';
+                setTimeout(() => n.remove(), 400);
+            }, 3000);
         }
 
-        // Return the parsed result
-        return data; // Should now be {rating, feedback, tip}
-    } catch (err) {
-        console.error("Function error:", err);
-        return { 
-            rating: 5, 
-            feedback: "Could not connect to service.", 
-            tip: "Check your internet." 
+        function triggerSpawnFeedback() {
+            const pollution = parseInt(document.getElementById('pollution').innerText);
+            const happiness = parseInt(document.getElementById('happiness').innerText);
+
+            const positiveMsg = [
+                "😊 Citizens love the fresh breeze!",
+                "🌳 This city is becoming a paradise!",
+                "🏢 New residents are moving in!",
+                "🌟 Energy is looking stable!",
+                "💖 Happiness is at an all-time high!"
+            ];
+            const neutralMsg = [
+                "🏗️ Construction is booming!",
+                "👋 Hello from your citizens!",
+                "☕ A calm day in EcoVerse.",
+                "🛒 Local shops are doing well."
+            ];
+            const negativeMsg = [
+                "😷 Warning: Smog levels are rising!",
+                "🤢 This air is making us sick!",
+                "😠 Higher pollution is lowering morale.",
+                "🌫️ Visibility is dropping due to soot.",
+                "⚠️ Citizens are demanding cleaner energy!"
+            ];
+
+            let msgs = neutralMsg;
+            let nType = 'info';
+
+            if (pollution > 50) {
+                msgs = negativeMsg;
+                nType = 'alert';
+            } else if (happiness > 60) {
+                msgs = positiveMsg;
+                nType = 'success';
+            }
+
+            const msg = msgs[Math.floor(Math.random() * msgs.length)];
+            showNotification(msg, nType);
+        }
+
+        function toggleTour(active) {
+            isTourActive = active;
+            const exitBtn = document.getElementById('exit-tour-btn');
+
+            if (active) {
+                document.body.classList.add('cinematic-mode');
+                exitBtn.style.display = 'block';
+                controls.autoRotate = true;
+                controls.autoRotateSpeed = 1.0;
+
+                // Hide ghost if any
+                if (ghost) ghost.visible = false;
+            } else {
+                document.body.classList.remove('cinematic-mode');
+                exitBtn.style.display = 'none';
+                controls.autoRotate = false;
+            }
+        }
+
+        // --- Boot ---
+        window.onload = function () {
+            try { init(); }
+            catch (e) { console.error("Init crashed:", e); }
         };
-    }
-};
 
+        // --- Walking Mode Logic ---
+        function enterWalkMode() {
+            isWalkMode = true;
+            document.getElementById('screen-result').classList.add('hidden');
+            document.getElementById('exit-walk').classList.remove('hidden');
+            document.getElementById('joystick-container').classList.remove('hidden');
 
+            // Prevent OrbitControls from snapping camera away
+            controls.minDistance = 0.01;
+            controls.maxDistance = 0.5;
+            controls.enablePan = false;
+            controls.enableZoom = false;
+            controls.autoRotate = false; // Stop the spin!
+            controls.enabled = true;
 
+            // Teleport player to City Center
+            const userObjects = placedObjects.filter(o => !o.isNatural);
+            const targets = userObjects.length > 0 ? userObjects : placedObjects;
+            let cx = 0, cz = 0;
+            if (targets.length > 0) {
+                targets.forEach(o => { cx += o.x; cz += o.z; });
+                cx /= targets.length;
+                cz /= targets.length;
+            }
+
+            // Ensure we don't spawn underground or too high
+            const spawnY = getTerrainHeight(cx, cz);
+            camera.position.set(cx, spawnY + 1.7, cz);
+
+            SFX.playPop();
+            initJoystick();
+        }
+
+        function exitWalkMode() {
+            isWalkMode = false;
+            document.getElementById('exit-walk').classList.add('hidden');
+            document.getElementById('joystick-container').classList.add('hidden');
+            document.getElementById('screen-result').classList.remove('hidden');
+
+            // Restore Cinematic View (Center on City)
+            const userObjects = placedObjects.filter(o => !o.isNatural);
+            const targets = userObjects.length > 0 ? userObjects : placedObjects;
+            let cx = 0, cz = 0;
+            if (targets.length > 0) {
+                targets.forEach(o => { cx += o.x; cz += o.z; });
+                cx /= targets.length;
+                cz /= targets.length;
+            }
+
+            // Reset to Cinematic Params
+            controls.minDistance = 5;
+            controls.maxDistance = 100;
+            controls.enablePan = false; // Disable panning in result screen
+            controls.enableZoom = false; // Disable zooming in result screen
+            controls.maxPolarAngle = Math.PI / 2.1;
+
+            // Teleport to Cinematic Spot
+            camera.position.set(cx, 25, cz + 40);
+            controls.target.set(cx, 0, cz);
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 2.0;
+            controls.update();
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyW' || e.code === 'ArrowUp') moveState.fwd = true;
+            if (e.code === 'KeyS' || e.code === 'ArrowDown') moveState.bwd = true;
+            if (e.code === 'KeyA' || e.code === 'ArrowLeft') moveState.left = true;
+            if (e.code === 'KeyD' || e.code === 'ArrowRight') moveState.right = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'KeyW' || e.code === 'ArrowUp') moveState.fwd = false;
+            if (e.code === 'KeyS' || e.code === 'ArrowDown') moveState.bwd = false;
+            if (e.code === 'KeyA' || e.code === 'ArrowLeft') moveState.left = false;
+            if (e.code === 'KeyD' || e.code === 'ArrowRight') moveState.right = false;
+        });
+
+        function handleWalking(delta) {
+            const speed = 12.0; // Increased speed for faster touring
+            const dir = new THREE.Vector3();
+            camera.getWorldDirection(dir);
+            dir.y = 0;
+            dir.normalize();
+
+            const side = new THREE.Vector3().crossVectors(camera.up, dir).normalize();
+
+            if (moveState.fwd) camera.position.addScaledVector(dir, speed * delta);
+            if (moveState.bwd) camera.position.addScaledVector(dir, -speed * delta);
+            if (moveState.left) camera.position.addScaledVector(side, speed * delta);
+            if (moveState.right) camera.position.addScaledVector(side, -speed * delta);
+
+            // Ground stick
+            const groundY = getTerrainHeight(camera.position.x, camera.position.z);
+            camera.position.y = THREE.MathUtils.lerp(camera.position.y, groundY + 1.7, 0.1);
+
+            // Update the orbit target to be just in front of the camera
+            controls.maxPolarAngle = Math.PI / 1.6;
+            controls.target.copy(camera.position).add(dir.multiplyScalar(0.1));
+        }
+
+        // --- Tooltip Logic ---
+        const tooltip = document.getElementById('tooltip');
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('mouseenter', (e) => {
+                const type = btn.dataset.type;
+                if (OBJ_CONFIG[type]) {
+                    tooltip.innerText = OBJ_CONFIG[type].desc;
+                    tooltip.classList.add('visible');
+                    // Position roughly next to the button
+                    const rect = btn.getBoundingClientRect();
+                    tooltip.style.top = rect.top + (rect.height / 2) + 'px';
+                    tooltip.style.left = rect.right + 10 + 'px';
+                }
+            });
+            btn.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('visible');
+            });
+        });
+
+        // --- Touch Joystick Logic ---
+        function initJoystick() {
+            const container = document.getElementById('joystick-container');
+            const knob = document.getElementById('joystick-knob');
+            const base = document.getElementById('joystick-base');
+            let active = false;
+            let startPos = { x: 0, y: 0 };
+
+            container.addEventListener('touchstart', (e) => {
+                active = true;
+                const touch = e.touches[0];
+                const rect = base.getBoundingClientRect();
+                startPos = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+            });
+
+            window.addEventListener('touchmove', (e) => {
+                if (!active) return;
+                const touch = e.touches[0];
+                const dx = touch.clientX - startPos.x;
+                const dy = touch.clientY - startPos.y;
+                const dist = Math.min(Math.sqrt(dx * dx + dy * dy), 50);
+                const angle = Math.atan2(dy, dx);
+
+                const moveX = Math.cos(angle) * dist;
+                const moveY = Math.sin(angle) * dist;
+
+                knob.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
+
+                // Update moveState based on joystick direction
+                const threshold = 10; // More sensitive
+                moveState.fwd = dy < -threshold;
+                moveState.bwd = dy > threshold;
+                moveState.left = dx < -threshold;
+                moveState.right = dx > threshold;
+            }, { passive: false });
+
+            window.addEventListener('touchend', () => {
+                active = false;
+                knob.style.transform = `translate(-50%, -50%)`;
+                moveState.fwd = moveState.bwd = moveState.left = moveState.right = false;
+            });
+        }
     </script>
 </body>
 
